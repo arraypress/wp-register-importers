@@ -5,7 +5,7 @@
  * @version 1.0.0
  */
 
-(function($) {
+(function ($) {
     'use strict';
 
     // Ensure ImportersAdmin is available
@@ -14,7 +14,7 @@
         return;
     }
 
-    const { ajaxUrl, restUrl, restNonce, pageId, operations, i18n } = ImportersAdmin;
+    const {ajaxUrl, restUrl, restNonce, pageId, operations, i18n} = ImportersAdmin;
 
     /**
      * Main Importers Controller
@@ -23,7 +23,7 @@
         /**
          * Initialize
          */
-        init: function() {
+        init: function () {
             this.repositionNotices();
             this.bindEvents();
             this.initDropzones();
@@ -32,24 +32,24 @@
         /**
          * Move any stray notices into the notices container
          */
-        repositionNotices: function() {
+        repositionNotices: function () {
             const $wrap = $('.importers-wrap');
             const $noticesContainer = $wrap.find('.importers-notices');
 
             if (!$noticesContainer.length) return;
 
             // Move any notices that appear inside the header into our container
-            $wrap.find('.importers-header .notice, .importers-header .updated, .importers-header .error').each(function() {
+            $wrap.find('.importers-header .notice, .importers-header .updated, .importers-header .error').each(function () {
                 $(this).appendTo($noticesContainer);
             });
 
             // Move any notices that appear before or after the header into our container
-            $wrap.find('.notice, .updated, .error').not('.importers-notices .notice, .importers-notices .updated, .importers-notices .error').each(function() {
+            $wrap.find('.notice, .updated, .error').not('.importers-notices .notice, .importers-notices .updated, .importers-notices .error').each(function () {
                 $(this).appendTo($noticesContainer);
             });
 
             // Also catch notices WordPress injects at wrap level
-            $wrap.siblings('.notice, .updated, .error').each(function() {
+            $wrap.siblings('.notice, .updated, .error').each(function () {
                 $(this).appendTo($noticesContainer);
             });
         },
@@ -57,7 +57,7 @@
         /**
          * Bind event handlers
          */
-        bindEvents: function() {
+        bindEvents: function () {
             // Sync buttons
             $(document).on('click', '.importers-sync-button', this.handleSyncClick.bind(this));
 
@@ -80,17 +80,17 @@
         /**
          * Initialize dropzone interactions
          */
-        initDropzones: function() {
-            $('.importers-dropzone').each(function() {
+        initDropzones: function () {
+            $('.importers-dropzone').each(function () {
                 const $dropzone = $(this);
 
                 $dropzone
-                    .on('dragover dragenter', function(e) {
+                    .on('dragover dragenter', function (e) {
                         e.preventDefault();
                         e.stopPropagation();
                         $dropzone.addClass('is-dragover');
                     })
-                    .on('dragleave dragend drop', function(e) {
+                    .on('dragleave dragend drop', function (e) {
                         e.preventDefault();
                         e.stopPropagation();
                         $dropzone.removeClass('is-dragover');
@@ -101,7 +101,7 @@
         /**
          * Handle click on errors stat to show errors panel
          */
-        handleErrorsClick: function(e) {
+        handleErrorsClick: function (e) {
             const $stat = $(e.currentTarget);
             const $card = $stat.closest('.importers-card');
             const $panel = $card.find('.importers-errors-panel');
@@ -114,7 +114,7 @@
         /**
          * Handle close button on errors panel
          */
-        handleErrorsClose: function(e) {
+        handleErrorsClose: function (e) {
             e.preventDefault();
             const $panel = $(e.currentTarget).closest('.importers-errors-panel');
             $panel.slideUp(200);
@@ -123,17 +123,17 @@
         /**
          * Handle copy errors button
          */
-        handleErrorsCopy: function(e) {
+        handleErrorsCopy: function (e) {
             e.preventDefault();
             const $button = $(e.currentTarget);
             const $panel = $button.closest('.importers-errors-panel');
             const $table = $panel.find('.importers-errors-table');
-            
+
             // Build text from table rows
             let text = 'Item\tError\n';
             text += '----\t-----\n';
-            
-            $table.find('tbody tr').each(function() {
+
+            $table.find('tbody tr').each(function () {
                 const $cells = $(this).find('td');
                 const item = $cells.eq(0).text().trim();
                 const error = $cells.eq(1).text().trim();
@@ -147,7 +147,7 @@
                 const originalText = $text.text();
                 $button.addClass('copied');
                 $text.text(i18n.logCopied || 'Copied!');
-                
+
                 setTimeout(() => {
                     $button.removeClass('copied');
                     $text.text(originalText);
@@ -160,7 +160,7 @@
         /**
          * Handle log close button (for sync cards)
          */
-        handleLogClose: function(e) {
+        handleLogClose: function (e) {
             e.preventDefault();
             const $log = $(e.currentTarget).closest('.importers-log');
             $log.slideUp(200);
@@ -169,7 +169,7 @@
         /**
          * Handle sync button click
          */
-        handleSyncClick: function(e) {
+        handleSyncClick: function (e) {
             e.preventDefault();
 
             const $button = $(e.currentTarget);
@@ -186,7 +186,7 @@
         /**
          * Start sync operation
          */
-        startSync: function($card, operationId) {
+        startSync: function ($card, operationId) {
             const $button = $card.find('.importers-sync-button');
             const $progress = $card.find('.importers-progress-wrap');
             const $log = $card.find('.importers-log');
@@ -197,7 +197,7 @@
             $button.find('.button-text').text(i18n.syncing);
             $progress.show();
             $log.show();
-            
+
             // Update status badge
             $statusBadge
                 .removeClass('importers-status-idle importers-status-success importers-status-error')
@@ -205,24 +205,24 @@
                 .text(i18n.statusRunning || 'Running');
 
             // Clear previous log entries
-            $card.find('.importers-log-entries').html('<div class="importers-log-placeholder">Starting sync...</div>');
+            $card.find('.importers-log-entries').html(`<div class="importers-log-placeholder">${i18n.startingSync || 'Starting sync...'}</div>`);
 
             const startTime = Date.now();
             let cursor = '';
 
             // Log start
-            this.logActivity($card, 'Starting sync operation...', 'info');
+            this.logActivity($card, i18n.startingSyncOp || 'Starting sync operation...', 'info');
 
             // Start sync
             this.apiRequest('sync/start', {
                 page_id: pageId,
                 operation_id: operationId
             }).then(response => {
-                this.logActivity($card, 'Connected successfully, fetching data...', 'success');
+                this.logActivity($card, i18n.connectedFetching || 'Connected successfully, fetching data...', 'success');
                 // Process batches
                 this.processSyncBatch($card, operationId, cursor, startTime, 1);
             }).catch(error => {
-                this.logActivity($card, 'Failed to start: ' + (error.message || i18n.errorOccurred), 'error');
+                this.logActivity($card, `${i18n.failedToStart || 'Failed to start:'} ${error.message || i18n.errorOccurred}`, 'error');
                 this.resetSyncUI($card, 'error');
             });
         },
@@ -230,7 +230,7 @@
         /**
          * Process a sync batch
          */
-        processSyncBatch: function($card, operationId, cursor, startTime, batchNum) {
+        processSyncBatch: function ($card, operationId, cursor, startTime, batchNum) {
             const operation = operations[operationId] || {};
             const singular = operation.singular || 'item';
             const plural = operation.plural || 'items';
@@ -249,23 +249,23 @@
                 const updated = response.updated || 0;
                 const skipped = response.skipped || 0;
                 const failed = response.failed || 0;
-                
-                let batchMsg = `Batch ${batchNum}: ${response.processed} ${response.processed === 1 ? singular : plural}`;
+
+                let batchMsg = `${i18n.batch || 'Batch'} ${batchNum}: ${response.processed} ${response.processed === 1 ? singular : plural}`;
                 let details = [];
-                if (created > 0) details.push(`${created} created`);
-                if (updated > 0) details.push(`${updated} updated`);
-                if (skipped > 0) details.push(`${skipped} skipped`);
-                if (failed > 0) details.push(`${failed} failed`);
+                if (created > 0) details.push(`${created} ${i18n.created.toLowerCase()}`);
+                if (updated > 0) details.push(`${updated} ${i18n.updated.toLowerCase()}`);
+                if (skipped > 0) details.push(`${skipped} ${i18n.skipped.toLowerCase()}`);
+                if (failed > 0) details.push(`${failed} ${i18n.failed.toLowerCase()}`);
                 if (details.length > 0) {
                     batchMsg += ` (${details.join(', ')})`;
                 }
-                
+
                 this.logActivity($card, batchMsg, failed > 0 ? 'warning' : 'info');
 
                 // Log any errors from this batch
                 if (response.errors && response.errors.length > 0) {
                     response.errors.forEach(err => {
-                        this.logActivity($card, `Error [${err.item}]: ${err.message}`, 'error');
+                        this.logActivity($card, `${i18n.errorItem ? i18n.errorItem.replace('%s', err.item) : 'Error [' + err.item + ']:'} ${err.message}`, 'error');
                     });
                 }
 
@@ -276,17 +276,23 @@
                     // Complete
                     const duration = Math.round((Date.now() - startTime) / 1000);
                     const totalFailed = response.stats?.failed || 0;
-                    
-                    this.logActivity($card, `Sync complete! ${response.total_processed} ${plural} processed in ${this.formatDuration(duration)}`, 'success');
-                    
+
+                    const completeMsg = i18n.syncCompleteMsg
+                        ? i18n.syncCompleteMsg.replace('%d', response.total_processed).replace('%s', plural).replace('%s', this.formatDuration(duration))
+                        : `Sync complete! ${response.total_processed} ${plural} processed in ${this.formatDuration(duration)}`;
+                    this.logActivity($card, completeMsg, 'success');
+
                     if (totalFailed > 0) {
-                        this.logActivity($card, `${totalFailed} ${totalFailed === 1 ? singular : plural} had errors`, 'warning');
+                        const errorMsg = i18n.itemsHadErrors
+                            ? i18n.itemsHadErrors.replace('%d', totalFailed).replace('%s', totalFailed === 1 ? singular : plural)
+                            : `${totalFailed} ${totalFailed === 1 ? singular : plural} had errors`;
+                        this.logActivity($card, errorMsg, 'warning');
                     }
-                    
+
                     this.completeOperation($card, operationId, 'sync', duration, response.stats);
                 }
             }).catch(error => {
-                this.logActivity($card, 'Batch failed: ' + (error.message || i18n.errorOccurred), 'error');
+                this.logActivity($card, `${i18n.batchFailed || 'Batch failed:'} ${error.message || i18n.errorOccurred}`, 'error');
                 this.resetSyncUI($card, 'error');
             });
         },
@@ -294,7 +300,7 @@
         /**
          * Handle file selection
          */
-        handleFileSelect: function(e) {
+        handleFileSelect: function (e) {
             const $input = $(e.target);
             const $card = $input.closest('.importers-card');
             const operationId = $card.data('operation-id');
@@ -318,7 +324,7 @@
         /**
          * Upload file to server
          */
-        uploadFile: function($card, operationId, file) {
+        uploadFile: function ($card, operationId, file) {
             const $dropzone = $card.find('.importers-dropzone');
             const $fileInfo = $card.find('.importers-file-info');
             const $nextButton = $card.find('.importers-next-button');
@@ -338,37 +344,37 @@
                 },
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                $dropzone.removeClass('is-loading');
+                .then(response => response.json())
+                .then(data => {
+                    $dropzone.removeClass('is-loading');
 
-                if (data.success) {
-                    // Store file data
-                    $card.data('file', data.file);
+                    if (data.success) {
+                        // Store file data
+                        $card.data('file', data.file);
 
-                    // Update UI
-                    $dropzone.hide();
-                    $fileInfo.show();
-                    $fileInfo.find('.importers-file-name').text(data.file.original_name);
-                    $fileInfo.find('.importers-file-size').text(`${data.file.size_human} • ${data.file.rows} rows`);
+                        // Update UI
+                        $dropzone.hide();
+                        $fileInfo.show();
+                        $fileInfo.find('.importers-file-name').text(data.file.original_name);
+                        $fileInfo.find('.importers-file-size').text(`${data.file.size_human} • ${data.file.rows} ${i18n.rows || 'rows'}`);
 
-                    // Enable next button
-                    $nextButton.prop('disabled', false);
-                } else {
-                    alert(data.message || i18n.uploadFailed);
-                }
-            })
-            .catch(error => {
-                $dropzone.removeClass('is-loading');
-                alert(i18n.uploadFailed);
-                console.error('Upload error:', error);
-            });
+                        // Enable next button
+                        $nextButton.prop('disabled', false);
+                    } else {
+                        alert(data.message || i18n.uploadFailed);
+                    }
+                })
+                .catch(error => {
+                    $dropzone.removeClass('is-loading');
+                    alert(i18n.uploadFailed);
+                    console.error('Upload error:', error);
+                });
         },
 
         /**
          * Handle file removal
          */
-        handleFileRemove: function(e) {
+        handleFileRemove: function (e) {
             e.preventDefault();
 
             const $card = $(e.target).closest('.importers-card');
@@ -390,7 +396,7 @@
         /**
          * Handle next step in import wizard
          */
-        handleNextStep: function(e) {
+        handleNextStep: function (e) {
             e.preventDefault();
 
             const $button = $(e.currentTarget);
@@ -418,7 +424,7 @@
         /**
          * Handle back step in import wizard
          */
-        handleBackStep: function(e) {
+        handleBackStep: function (e) {
             e.preventDefault();
 
             const $button = $(e.currentTarget);
@@ -434,7 +440,7 @@
         /**
          * Show field mapping interface
          */
-        showFieldMapping: function($card, operationId) {
+        showFieldMapping: function ($card, operationId) {
             const fileData = $card.data('file');
             const operation = operations[operationId];
 
@@ -454,8 +460,8 @@
                 const label = field.label || fieldKey;
 
                 // Try to auto-match by name
-                const autoMatch = csvHeaders.find(h => 
-                    h.toLowerCase() === fieldKey.toLowerCase() || 
+                const autoMatch = csvHeaders.find(h =>
+                    h.toLowerCase() === fieldKey.toLowerCase() ||
                     h.toLowerCase() === label.toLowerCase()
                 );
 
@@ -489,11 +495,11 @@
         /**
          * Handle mapping dropdown change
          */
-        handleMappingChange: function(e) {
+        handleMappingChange: function (e) {
             const $select = $(e.currentTarget);
             const $card = $select.closest('.importers-card');
             const operationId = $card.data('operation-id');
-            
+
             // Update the preview based on new mapping
             this.updateMappedPreview($card, operationId);
         },
@@ -501,12 +507,12 @@
         /**
          * Load CSV preview data and render based on mapping
          */
-        loadPreview: function($card, uuid, operationId) {
+        loadPreview: function ($card, uuid, operationId) {
             this.apiRequest(`preview/${uuid}`, null, 'GET').then(response => {
                 if (response.success && response.preview) {
                     // Store raw preview data on the card
                     $card.data('previewData', response.preview);
-                    
+
                     // Render preview based on current mapping
                     this.updateMappedPreview($card, operationId);
                 }
@@ -516,10 +522,10 @@
         /**
          * Update preview table based on current field mapping
          */
-        updateMappedPreview: function($card, operationId) {
+        updateMappedPreview: function ($card, operationId) {
             const preview = $card.data('previewData');
             const operation = operations[operationId];
-            
+
             if (!preview || !operation) {
                 return;
             }
@@ -527,7 +533,7 @@
             const fields = operation.fields || {};
             const fieldMap = this.getFieldMap($card);
             const csvHeaders = preview.headers || [];
-            
+
             const $table = $card.find('.importers-preview-table');
             const $thead = $table.find('thead');
             const $tbody = $table.find('tbody');
@@ -539,7 +545,7 @@
                 const mappedColumn = fieldMap[fieldKey];
                 const isMapped = !!mappedColumn;
                 const headerClass = isMapped ? '' : 'unmapped';
-                headerHtml += `<th class="${headerClass}">${this.escapeHtml(label)}${!isMapped ? ' <small>(unmapped)</small>' : ''}</th>`;
+                headerHtml += `<th class="${headerClass}">${this.escapeHtml(label)}${!isMapped ? ` <small>(${i18n.unmapped || 'unmapped'})</small>` : ''}</th>`;
             });
             headerHtml += '</tr>';
             $thead.html(headerHtml);
@@ -551,7 +557,7 @@
                 Object.entries(fields).forEach(([fieldKey, field]) => {
                     const mappedColumn = fieldMap[fieldKey];
                     let cellValue = '';
-                    
+
                     if (mappedColumn) {
                         // Find the column index for the mapped header
                         const colIndex = csvHeaders.indexOf(mappedColumn);
@@ -559,7 +565,7 @@
                             cellValue = row[colIndex];
                         }
                     }
-                    
+
                     const cellClass = mappedColumn ? '' : 'unmapped';
                     bodyHtml += `<td class="${cellClass}">${this.escapeHtml(cellValue || '')}</td>`;
                 });
@@ -571,7 +577,7 @@
         /**
          * Start import operation
          */
-        startImport: function($card, operationId) {
+        startImport: function ($card, operationId) {
             const fileData = $card.data('file');
             const fieldMap = this.getFieldMap($card);
 
@@ -587,7 +593,7 @@
             });
 
             if (missingRequired.length > 0) {
-                alert(`Please map the following required fields: ${missingRequired.join(', ')}`);
+                alert(`${i18n.mapRequiredFields || 'Please map the following required fields:'} ${missingRequired.join(', ')}`);
                 return;
             }
 
@@ -596,7 +602,7 @@
 
             // Clear log and add starting message
             $card.find('.importers-log-entries').html('');
-            this.logActivity($card, 'Starting import...', 'info');
+            this.logActivity($card, i18n.startingImport || 'Starting import...', 'info');
 
             const startTime = Date.now();
 
@@ -608,17 +614,20 @@
                 field_map: fieldMap
             }).then(response => {
                 $card.data('totalItems', response.total_items);
-                this.logActivity($card, `Processing ${response.total_items} rows...`, 'info');
+                const processingMsg = i18n.processingRows
+                    ? i18n.processingRows.replace('%d', response.total_items)
+                    : `Processing ${response.total_items} rows...`;
+                this.logActivity($card, processingMsg, 'info');
                 this.processImportBatch($card, operationId, fileData.uuid, fieldMap, 0, startTime, 1);
             }).catch(error => {
-                this.logActivity($card, 'Failed to start: ' + (error.message || i18n.errorOccurred), 'error');
+                this.logActivity($card, `${i18n.failedToStart || 'Failed to start:'} ${error.message || i18n.errorOccurred}`, 'error');
             });
         },
 
         /**
          * Process an import batch
          */
-        processImportBatch: function($card, operationId, uuid, fieldMap, offset, startTime, batchNum) {
+        processImportBatch: function ($card, operationId, uuid, fieldMap, offset, startTime, batchNum) {
             this.apiRequest('import/batch', {
                 page_id: pageId,
                 operation_id: operationId,
@@ -631,11 +640,15 @@
                 this.updateLiveStats($card, response);
 
                 // Log activity
-                this.logActivity($card, `Batch ${batchNum}: ${response.processed} rows (${response.created} created, ${response.updated} updated, ${response.skipped} skipped)`);
+                const batchMsg = `${i18n.batch || 'Batch'} ${batchNum}: ${response.processed} ${i18n.rows || 'rows'} (${response.created} ${i18n.created.toLowerCase()}, ${response.updated} ${i18n.updated.toLowerCase()}, ${response.skipped} ${i18n.skipped.toLowerCase()})`;
+                this.logActivity($card, batchMsg);
 
                 if (response.errors && response.errors.length > 0) {
                     response.errors.forEach(err => {
-                        this.logActivity($card, `Row ${err.row}: ${err.message}`, 'error');
+                        const rowMsg = i18n.rowError
+                            ? i18n.rowError.replace('%d', err.row)
+                            : `Row ${err.row}:`;
+                        this.logActivity($card, `${rowMsg} ${err.message}`, 'error');
                     });
                 }
 
@@ -645,21 +658,24 @@
                 } else {
                     // Complete
                     const duration = Math.round((Date.now() - startTime) / 1000);
-                    this.logActivity($card, `Import complete in ${this.formatDuration(duration)}!`, 'success');
+                    const completeMsg = i18n.importCompleteMsg
+                        ? i18n.importCompleteMsg.replace('%s', this.formatDuration(duration))
+                        : `Import complete in ${this.formatDuration(duration)}!`;
+                    this.logActivity($card, completeMsg, 'success');
                     this.completeOperation($card, operationId, 'import', duration, response.stats, uuid);
                 }
             }).catch(error => {
-                this.logActivity($card, 'Batch failed: ' + (error.message || i18n.errorOccurred), 'error');
+                this.logActivity($card, `${i18n.batchFailed || 'Batch failed:'} ${error.message || i18n.errorOccurred}`, 'error');
             });
         },
 
         /**
          * Get field mapping from UI
          */
-        getFieldMap: function($card) {
+        getFieldMap: function ($card) {
             const fieldMap = {};
 
-            $card.find('.importers-mapping-row').each(function() {
+            $card.find('.importers-mapping-row').each(function () {
                 const $row = $(this);
                 const fieldKey = $row.data('field');
                 const csvColumn = $row.find('.importers-mapping-select').val();
@@ -675,15 +691,22 @@
         /**
          * Complete operation
          */
-        completeOperation: function($card, operationId, type, duration, stats, fileUuid = null) {
-            // Notify server
-            this.apiRequest('complete', {
+        completeOperation: function ($card, operationId, type, duration, stats, fileUuid = null) {
+            // Build request data
+            const requestData = {
                 page_id: pageId,
                 operation_id: operationId,
                 status: 'complete',
-                duration: duration,
-                file_uuid: fileUuid
-            });
+                duration: duration
+            };
+
+            // Only include file_uuid for imports
+            if (fileUuid) {
+                requestData.file_uuid = fileUuid;
+            }
+
+            // Notify server
+            this.apiRequest('complete', requestData);
 
             if (type === 'sync') {
                 const hasErrors = (stats?.failed || 0) > 0;
@@ -698,7 +721,7 @@
         /**
          * Show import completion summary
          */
-        showImportComplete: function($card, stats, duration) {
+        showImportComplete: function ($card, stats, duration) {
             const $completeStats = $card.find('.importers-complete-stats');
             const $completeErrors = $card.find('.importers-complete-errors');
 
@@ -753,7 +776,7 @@
         /**
          * Go to specific step
          */
-        goToStep: function($card, step) {
+        goToStep: function ($card, step) {
             const $steps = $card.find('.importers-step');
             const $dots = $card.find('.importers-step-dot');
             const $backButton = $card.find('.importers-back-button');
@@ -765,7 +788,7 @@
 
             // Update dots
             $dots.removeClass('active completed');
-            $dots.each(function() {
+            $dots.each(function () {
                 const dotStep = parseInt($(this).data('step'), 10);
                 if (dotStep < step) {
                     $(this).addClass('completed');
@@ -809,7 +832,7 @@
         /**
          * Update progress bar
          */
-        updateProgress: function($card, percentage, processed, total) {
+        updateProgress: function ($card, percentage, processed, total) {
             const $fill = $card.find('.importers-progress-fill');
             const $status = $card.find('.importers-progress-status');
             const $percent = $card.find('.importers-progress-percent');
@@ -822,7 +845,7 @@
         /**
          * Update live stats display (for imports)
          */
-        updateLiveStats: function($card, data) {
+        updateLiveStats: function ($card, data) {
             $card.find('.importers-stat-created').text(data.stats?.created || 0);
             $card.find('.importers-stat-updated').text(data.stats?.updated || 0);
             $card.find('.importers-stat-skipped').text(data.stats?.skipped || 0);
@@ -832,7 +855,7 @@
         /**
          * Update sync live stats (for sync cards - in the card stats section)
          */
-        updateSyncLiveStats: function($card, data) {
+        updateSyncLiveStats: function ($card, data) {
             const $stats = $card.find('.importers-card-stats .importers-stat-value');
             if ($stats.length >= 3) {
                 $stats.eq(0).text(data.total_items || 0);
@@ -844,7 +867,7 @@
         /**
          * Update sync card stats after completion
          */
-        updateSyncCardStats: function($card, stats) {
+        updateSyncCardStats: function ($card, stats) {
             const $stats = $card.find('.importers-card-stats .importers-stat-value');
             if ($stats.length >= 3) {
                 $stats.eq(0).text(stats.total || (stats.created + stats.updated + stats.skipped + stats.failed) || 0);
@@ -857,9 +880,9 @@
         /**
          * Log activity message
          */
-        logActivity: function($card, message, type = 'info') {
+        logActivity: function ($card, message, type = 'info') {
             const $log = $card.find('.importers-log-entries');
-            
+
             // If no log element exists, just console log
             if ($log.length === 0) {
                 console.log(`[Importers ${type}]`, message);
@@ -890,7 +913,7 @@
          * @param {jQuery} $card - The card element
          * @param {string} finalStatus - 'idle', 'success', or 'error'
          */
-        resetSyncUI: function($card, finalStatus = 'idle') {
+        resetSyncUI: function ($card, finalStatus = 'idle') {
             const $button = $card.find('.importers-sync-button');
             const $progress = $card.find('.importers-progress-wrap');
             const $statusBadge = $card.find('.importers-status-badge');
@@ -898,7 +921,7 @@
             // Reset button
             $button.removeClass('is-syncing').prop('disabled', false);
             $button.find('.button-text').text(i18n.syncNow);
-            
+
             // Hide progress bar
             $progress.hide();
 
@@ -909,7 +932,7 @@
 
             // Update status badge based on result
             $statusBadge.removeClass('importers-status-idle importers-status-running importers-status-success importers-status-error');
-            
+
             switch (finalStatus) {
                 case 'success':
                     $statusBadge.addClass('importers-status-success').text(i18n.statusComplete || 'Complete');
@@ -925,7 +948,7 @@
         /**
          * Reset import UI to initial state
          */
-        resetImportUI: function($card) {
+        resetImportUI: function ($card) {
             // Clear file data
             $card.removeData('file');
             $card.removeData('totalItems');
@@ -958,7 +981,7 @@
         /**
          * Show error message
          */
-        showError: function($card, message) {
+        showError: function ($card, message) {
             console.error('[Importers Error]', message);
             this.logActivity($card, message, 'error');
         },
@@ -966,7 +989,7 @@
         /**
          * Make API request
          */
-        apiRequest: function(endpoint, data = null, method = 'POST') {
+        apiRequest: function (endpoint, data = null, method = 'POST') {
             const options = {
                 method: method,
                 headers: {
@@ -998,7 +1021,7 @@
         /**
          * Format duration for display
          */
-        formatDuration: function(seconds) {
+        formatDuration: function (seconds) {
             if (seconds < 60) {
                 return `${seconds}s`;
             }
@@ -1010,7 +1033,7 @@
         /**
          * Escape HTML entities
          */
-        escapeHtml: function(str) {
+        escapeHtml: function (str) {
             if (!str) return '';
             const div = document.createElement('div');
             div.textContent = str;
@@ -1019,7 +1042,7 @@
     };
 
     // Initialize when DOM is ready
-    $(document).ready(function() {
+    $(document).ready(function () {
         Importers.init();
     });
 

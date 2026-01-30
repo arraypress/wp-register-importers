@@ -115,19 +115,22 @@ trait AssetManager {
 			'uploadFailed'     => __( 'File upload failed', 'arraypress' ),
 			'removeFile'       => __( 'Remove file', 'arraypress' ),
 			'rowsDetected'     => __( '%d rows detected', 'arraypress' ),
+			'rows'             => __( 'rows', 'arraypress' ),
 
 			// Field mapping
 			'mapFields'        => __( 'Map Fields', 'arraypress' ),
 			'selectColumn'     => __( '-- Select Column --', 'arraypress' ),
 			'required'         => __( 'Required', 'arraypress' ),
 			'optional'         => __( 'Optional', 'arraypress' ),
-			'unmapped'         => __( 'Unmapped', 'arraypress' ),
+			'unmapped'         => __( 'unmapped', 'arraypress' ),
 			'previewData'      => __( 'Preview Data', 'arraypress' ),
+			'mapRequiredFields' => __( 'Please map the following required fields:', 'arraypress' ),
 
 			// Processing
 			'processing'       => __( 'Processing...', 'arraypress' ),
 			'processed'        => __( 'Processed', 'arraypress' ),
 			'progress'         => __( 'Progress', 'arraypress' ),
+			'batch'            => __( 'Batch', 'arraypress' ),
 			'created'          => __( 'Created', 'arraypress' ),
 			'updated'          => __( 'Updated', 'arraypress' ),
 			'skipped'          => __( 'Skipped', 'arraypress' ),
@@ -139,13 +142,26 @@ trait AssetManager {
 			'syncing'          => __( 'Syncing...', 'arraypress' ),
 			'lastSync'         => __( 'Last sync', 'arraypress' ),
 			'neverSynced'      => __( 'Never synced', 'arraypress' ),
+			'startingSync'     => __( 'Starting sync...', 'arraypress' ),
+			'startingSyncOp'   => __( 'Starting sync operation...', 'arraypress' ),
+			'connectedFetching' => __( 'Connected successfully, fetching data...', 'arraypress' ),
+			'batchProcessed'   => __( 'Batch %d: %d %s', 'arraypress' ),
+			'syncCompleteMsg'  => __( 'Sync complete! %d %s processed in %s', 'arraypress' ),
+			'itemsHadErrors'   => __( '%d %s had errors', 'arraypress' ),
+			'batchFailed'      => __( 'Batch failed:', 'arraypress' ),
+			'failedToStart'    => __( 'Failed to start:', 'arraypress' ),
 
 			// Import specific
 			'startImport'      => __( 'Start Import', 'arraypress' ),
 			'importing'        => __( 'Importing...', 'arraypress' ),
 			'uploadFile'       => __( 'Upload File', 'arraypress' ),
-			'continueToMap'    => __( 'Continue to Mapping', 'arraypress' ),
+			'continueToMap'    => __( 'Continue', 'arraypress' ),
 			'reviewImport'     => __( 'Review & Import', 'arraypress' ),
+			'startingImport'   => __( 'Starting import...', 'arraypress' ),
+			'processingRows'   => __( 'Processing %d rows...', 'arraypress' ),
+			'importCompleteMsg' => __( 'Import complete in %s!', 'arraypress' ),
+			'rowError'         => __( 'Row %d:', 'arraypress' ),
+			'errorItem'        => __( 'Error [%s]:', 'arraypress' ),
 
 			// Completion
 			'complete'         => __( 'Complete!', 'arraypress' ),

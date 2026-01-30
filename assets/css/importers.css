@@ -450,6 +450,7 @@
     border-top: 1px solid #dcdcde;
     background: #f6f7f7;
     gap: 16px;
+    margin-top: auto;
 }
 
 .importers-footer-left {
