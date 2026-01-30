@@ -331,26 +331,6 @@ class StatsManager {
 	}
 
 	/**
-	 * Format a timestamp for display.
-	 *
-	 * @param string|null $timestamp MySQL timestamp (GMT).
-	 *
-	 * @return string Formatted date/time or 'Never'.
-	 */
-	public static function format_timestamp( ?string $timestamp ): string {
-		if ( ! $timestamp ) {
-			return __( 'Never', 'arraypress' );
-		}
-
-		$local_time = get_date_from_gmt( $timestamp );
-
-		return date_i18n(
-			get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
-			strtotime( $local_time )
-		);
-	}
-
-	/**
 	 * Get relative time string (e.g., "2 hours ago").
 	 *
 	 * @param string|null $timestamp MySQL timestamp (GMT).

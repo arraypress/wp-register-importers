@@ -138,21 +138,30 @@ class FileManager {
 			);
 		}
 
-		// Validate file type by MIME
-		$mime_type = self::get_file_mime_type( $file['tmp_name'] );
-		if ( ! in_array( $mime_type, self::ALLOWED_MIME_TYPES, true ) ) {
-			return new WP_Error(
-				'invalid_type',
-				__( 'Invalid file type. Please upload a CSV file.', 'arraypress' )
-			);
-		}
-
 		// Validate file extension
 		$extension = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
 		if ( $extension !== 'csv' ) {
 			return new WP_Error(
 				'invalid_extension',
 				__( 'File must have a .csv extension.', 'arraypress' )
+			);
+		}
+
+		// Validate file type using WordPress function
+		$filetype = wp_check_filetype( $file['name'], self::get_allowed_mimes() );
+		if ( empty( $filetype['type'] ) ) {
+			return new WP_Error(
+				'invalid_type',
+				__( 'Invalid file type. Please upload a CSV file.', 'arraypress' )
+			);
+		}
+
+		// Additional MIME validation on actual file content
+		$detected_type = self::get_file_mime_type( $file['tmp_name'] );
+		if ( ! in_array( $detected_type, self::ALLOWED_MIME_TYPES, true ) ) {
+			return new WP_Error(
+				'invalid_type',
+				__( 'Invalid file type. Please upload a CSV file.', 'arraypress' )
 			);
 		}
 
@@ -191,6 +200,17 @@ class FileManager {
 		set_transient( self::TRANSIENT_PREFIX . $uuid, $file_data, self::MAX_FILE_AGE );
 
 		return $file_data;
+	}
+
+	/**
+	 * Get allowed MIME types for CSV uploads.
+	 *
+	 * @return array Associative array of extension => mime type.
+	 */
+	public static function get_allowed_mimes(): array {
+		return [
+			'csv' => 'text/csv',
+		];
 	}
 
 	/**
@@ -252,7 +272,7 @@ class FileManager {
 
 		// Skip to offset
 		while ( $current < $offset && fgetcsv( $handle ) !== false ) {
-			$current++;
+			$current ++;
 		}
 
 		// Read batch
@@ -264,7 +284,7 @@ class FileManager {
 				// Handle row with different column count
 				$rows[] = $row;
 			}
-			$current++;
+			$current ++;
 		}
 
 		$has_more = fgetcsv( $handle ) !== false;
@@ -282,8 +302,8 @@ class FileManager {
 	/**
 	 * Get preview rows from a CSV file.
 	 *
-	 * @param string $uuid      The file UUID.
-	 * @param int    $max_rows  Maximum rows to preview (default: 5).
+	 * @param string $uuid     The file UUID.
+	 * @param int    $max_rows Maximum rows to preview (default: 5).
 	 *
 	 * @return array|WP_Error Preview data or WP_Error on failure.
 	 */
@@ -368,7 +388,7 @@ class FileManager {
 			if ( $file->isFile() && strtolower( $file->getExtension() ) === 'csv' ) {
 				if ( ( $now - $file->getMTime() ) > self::MAX_FILE_AGE ) {
 					unlink( $file->getPathname() );
-					$deleted++;
+					$deleted ++;
 				}
 			}
 		}
@@ -389,7 +409,7 @@ class FileManager {
 
 		if ( $handle ) {
 			while ( fgets( $handle ) !== false ) {
-				$count++;
+				$count ++;
 			}
 			fclose( $handle );
 		}

@@ -167,11 +167,11 @@ trait ConfigParser {
 
 			case 'import':
 				$operation = wp_parse_args( $operation, [
-					'fields'              => [],
-					'update_existing'     => true,
-					'match_field'         => null,
-					'skip_empty_rows'     => true,
-					'validate_callback'   => null,
+					'fields'            => [],
+					'update_existing'   => true,
+					'match_field'       => null,
+					'skip_empty_rows'   => true,
+					'validate_callback' => null,
 				] );
 
 				// Normalize fields
@@ -236,7 +236,7 @@ trait ConfigParser {
 	public function get_all_operations(): array {
 		$all = [];
 
-		foreach ( $this->operations as $tab => $ops ) {
+		foreach ( $this->operations as $ops ) {
 			$all = array_merge( $all, $ops );
 		}
 
@@ -251,7 +251,7 @@ trait ConfigParser {
 	 * @return array|null Operation config or null if not found.
 	 */
 	public function get_operation( string $operation_id ): ?array {
-		foreach ( $this->operations as $tab => $ops ) {
+		foreach ( $this->operations as $ops ) {
 			if ( isset( $ops[ $operation_id ] ) ) {
 				return $ops[ $operation_id ];
 			}

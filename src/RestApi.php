@@ -234,6 +234,35 @@ class RestApi {
 			'callback'            => [ __CLASS__, 'handle_get_stats' ],
 			'permission_callback' => [ __CLASS__, 'check_permission' ],
 		] );
+
+		// Clear operation stats
+		register_rest_route( self::NAMESPACE, '/stats/(?P<page_id>[a-z0-9_-]+)/(?P<operation_id>[a-z0-9_-]+)/clear', [
+			'methods'             => WP_REST_Server::DELETABLE,
+			'callback'            => [ __CLASS__, 'handle_clear_stats' ],
+			'permission_callback' => [ __CLASS__, 'check_permission' ],
+		] );
+
+		// Cancel operation
+		register_rest_route( self::NAMESPACE, '/cancel', [
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => [ __CLASS__, 'handle_cancel' ],
+			'permission_callback' => [ __CLASS__, 'check_permission' ],
+			'args'                => [
+				'page_id'      => [
+					'required'          => true,
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_key',
+				],
+				'operation_id' => [
+					'required'          => true,
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_key',
+				],
+				'file_uuid'    => [
+					'type' => 'string',
+				],
+			],
+		] );
 	}
 
 	/**
@@ -445,15 +474,15 @@ class RestApi {
 		$row_number = $offset + 1; // Start from 1-based row number (after header)
 
 		foreach ( $batch_data['rows'] as $row ) {
-			$row_number++;
-			$results['processed']++;
+			$row_number ++;
+			$results['processed'] ++;
 
 			// Map fields according to field_map
 			$mapped_row = self::map_row( $row, $field_map, $operation['fields'] ?? [] );
 
 			// Skip empty rows if configured
 			if ( $operation['skip_empty_rows'] && self::is_empty_row( $mapped_row ) ) {
-				$results['skipped']++;
+				$results['skipped'] ++;
 				continue;
 			}
 
@@ -462,7 +491,7 @@ class RestApi {
 				$validation = call_user_func( $operation['validate_callback'], $mapped_row );
 
 				if ( is_wp_error( $validation ) ) {
-					$results['failed']++;
+					$results['failed'] ++;
 					$results['errors'][] = [
 						'row'     => $row_number,
 						'item'    => self::get_row_identifier( $mapped_row ),
@@ -476,24 +505,24 @@ class RestApi {
 				$result = call_user_func( $process_callback, $mapped_row );
 
 				if ( is_wp_error( $result ) ) {
-					$results['failed']++;
+					$results['failed'] ++;
 					$results['errors'][] = [
 						'row'     => $row_number,
 						'item'    => self::get_row_identifier( $mapped_row ),
 						'message' => $result->get_error_message(),
 					];
 				} elseif ( $result === 'created' ) {
-					$results['created']++;
+					$results['created'] ++;
 				} elseif ( $result === 'updated' ) {
-					$results['updated']++;
+					$results['updated'] ++;
 				} elseif ( $result === 'skipped' ) {
-					$results['skipped']++;
+					$results['skipped'] ++;
 				} else {
 					// Assume success if truthy
-					$results['created']++;
+					$results['created'] ++;
 				}
 			} catch ( Exception $e ) {
-				$results['failed']++;
+				$results['failed'] ++;
 				$results['errors'][] = [
 					'row'     => $row_number,
 					'item'    => self::get_row_identifier( $mapped_row ),
@@ -643,29 +672,29 @@ class RestApi {
 		}
 
 		foreach ( $items as $item ) {
-			$results['processed']++;
+			$results['processed'] ++;
 
 			try {
 				$result = call_user_func( $process_callback, $item );
 
 				if ( is_wp_error( $result ) ) {
-					$results['failed']++;
+					$results['failed'] ++;
 					$results['errors'][] = [
 						'item'    => self::get_item_identifier( $item ),
 						'message' => $result->get_error_message(),
 					];
 				} elseif ( $result === 'created' ) {
-					$results['created']++;
+					$results['created'] ++;
 				} elseif ( $result === 'updated' ) {
-					$results['updated']++;
+					$results['updated'] ++;
 				} elseif ( $result === 'skipped' ) {
-					$results['skipped']++;
+					$results['skipped'] ++;
 				} else {
 					// Assume success if truthy
-					$results['created']++;
+					$results['created'] ++;
 				}
 			} catch ( Exception $e ) {
-				$results['failed']++;
+				$results['failed'] ++;
 				$results['errors'][] = [
 					'item'    => self::get_item_identifier( $item ),
 					'message' => $e->getMessage(),
@@ -744,6 +773,52 @@ class RestApi {
 
 		return new WP_REST_Response( [
 			'success' => true,
+			'stats'   => $stats,
+		], 200 );
+	}
+
+	/**
+	 * Handle clear stats request.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function handle_clear_stats( WP_REST_Request $request ): WP_REST_Response {
+		$page_id      = $request->get_param( 'page_id' );
+		$operation_id = $request->get_param( 'operation_id' );
+
+		StatsManager::clear_stats( $page_id, $operation_id );
+
+		return new WP_REST_Response( [
+			'success' => true,
+			'message' => __( 'Stats cleared successfully.', 'arraypress' ),
+		], 200 );
+	}
+
+	/**
+	 * Handle cancel operation request.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function handle_cancel( WP_REST_Request $request ): WP_REST_Response {
+		$page_id      = $request->get_param( 'page_id' );
+		$operation_id = $request->get_param( 'operation_id' );
+		$file_uuid    = $request->get_param( 'file_uuid' );
+
+		// Complete the stats with cancelled status
+		$stats = StatsManager::complete_run( $page_id, $operation_id, 'cancelled', 0 );
+
+		// Clean up file if import
+		if ( $file_uuid ) {
+			FileManager::delete_file( $file_uuid );
+		}
+
+		return new WP_REST_Response( [
+			'success' => true,
+			'message' => __( 'Operation cancelled.', 'arraypress' ),
 			'stats'   => $stats,
 		], 200 );
 	}

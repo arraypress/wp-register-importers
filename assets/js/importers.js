@@ -16,6 +16,9 @@
 
     const {ajaxUrl, restUrl, restNonce, pageId, operations, i18n} = ImportersAdmin;
 
+    // Track cancelled operations to stop batch loops
+    const cancelledOperations = {};
+
     /**
      * Main Importers Controller
      */
@@ -75,6 +78,10 @@
 
             // Log close button (for sync cards)
             $(document).on('click', '.importers-log-close', this.handleLogClose.bind(this));
+
+            // Cancel and clear
+            $(document).on('click', '.importers-cancel-button', this.handleCancel.bind(this));
+            $(document).on('click', '.importers-clear-stats', this.handleClearStats.bind(this));
         },
 
         /**
@@ -167,6 +174,104 @@
         },
 
         /**
+         * Handle cancel button click
+         */
+        handleCancel: function (e) {
+            e.preventDefault();
+
+            const $button = $(e.currentTarget);
+            const $card = $button.closest('.importers-card');
+            const operationId = $card.data('operation-id');
+            const operationType = $card.data('operation-type');
+
+            if (!confirm(i18n.confirmCancel)) {
+                return;
+            }
+
+            // Set cancelled flag to stop batch loop
+            cancelledOperations[operationId] = true;
+
+            // Get file UUID if import
+            const fileData = $card.data('file');
+            const fileUuid = fileData?.uuid || null;
+
+            // Build request data
+            const requestData = {
+                page_id: pageId,
+                operation_id: operationId
+            };
+
+            if (fileUuid) {
+                requestData.file_uuid = fileUuid;
+            }
+
+            // Call cancel endpoint
+            this.apiRequest('cancel', requestData).then(response => {
+                this.logActivity($card, i18n.operationCancelled || 'Operation cancelled.', 'warning');
+
+                if (operationType === 'sync') {
+                    this.resetSyncUI($card, 'idle');
+                } else {
+                    // Reset import to step 1
+                    this.resetImportUI($card);
+                }
+            }).catch(error => {
+                console.error('Cancel failed:', error);
+            });
+        },
+
+        /**
+         * Handle clear stats click
+         */
+        handleClearStats: function (e) {
+            e.preventDefault();
+
+            const $link = $(e.currentTarget);
+            const $card = $link.closest('.importers-card');
+            const operationId = $card.data('operation-id');
+
+            if (!confirm(i18n.confirmClearStats || 'Clear all stats for this operation?')) {
+                return;
+            }
+
+            // Call clear stats endpoint
+            fetch(`${restUrl}stats/${pageId}/${operationId}/clear`, {
+                method: 'DELETE',
+                headers: {
+                    'X-WP-Nonce': restNonce
+                }
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    // Reset stats display
+                    this.resetCardStats($card);
+                }
+            }).catch(error => {
+                console.error('Clear stats failed:', error);
+            });
+        },
+
+        /**
+         * Reset card stats to zero
+         */
+        resetCardStats: function ($card) {
+            const operationType = $card.data('operation-type');
+
+            if (operationType === 'sync') {
+                $card.find('.importers-stat-value').text('0');
+                $card.find('.importers-stat-error').removeClass('has-errors');
+                $card.find('.importers-last-run').text(`${i18n.lastSync}: ${i18n.neverSynced}`);
+                $card.find('.importers-status-badge')
+                    .removeClass('importers-status-success importers-status-error importers-status-running')
+                    .addClass('importers-status-idle')
+                    .text(i18n.statusIdle || 'Ready');
+                $card.find('.importers-errors-panel').slideUp(200);
+            } else {
+                // Import cards
+                $card.find('.importers-last-import').text(`${i18n.lastImport || 'Last import'}: ${i18n.neverImported || 'Never'}`);
+            }
+        },
+
+        /**
          * Handle sync button click
          */
         handleSyncClick: function (e) {
@@ -188,13 +293,18 @@
          */
         startSync: function ($card, operationId) {
             const $button = $card.find('.importers-sync-button');
+            const $cancelButton = $card.find('.importers-cancel-button');
             const $progress = $card.find('.importers-progress-wrap');
             const $log = $card.find('.importers-log');
             const $statusBadge = $card.find('.importers-status-badge');
 
+            // Reset cancelled flag
+            cancelledOperations[operationId] = false;
+
             // Update UI - show running state
             $button.addClass('is-syncing').prop('disabled', true);
             $button.find('.button-text').text(i18n.syncing);
+            $cancelButton.show();
             $progress.show();
             $log.show();
 
@@ -231,6 +341,11 @@
          * Process a sync batch
          */
         processSyncBatch: function ($card, operationId, cursor, startTime, batchNum) {
+            // Check if cancelled
+            if (cancelledOperations[operationId]) {
+                return;
+            }
+
             const operation = operations[operationId] || {};
             const singular = operation.singular || 'item';
             const plural = operation.plural || 'items';
@@ -597,6 +712,9 @@
                 return;
             }
 
+            // Reset cancelled flag
+            cancelledOperations[operationId] = false;
+
             // Move to progress step
             this.goToStep($card, 3);
 
@@ -628,6 +746,11 @@
          * Process an import batch
          */
         processImportBatch: function ($card, operationId, uuid, fieldMap, offset, startTime, batchNum) {
+            // Check if cancelled
+            if (cancelledOperations[operationId]) {
+                return;
+            }
+
             this.apiRequest('import/batch', {
                 page_id: pageId,
                 operation_id: operationId,
@@ -635,6 +758,11 @@
                 field_map: fieldMap,
                 offset: offset
             }).then(response => {
+                // Check if cancelled during request
+                if (cancelledOperations[operationId]) {
+                    return;
+                }
+
                 // Update progress
                 this.updateProgress($card, response.percentage, response.total_processed, response.total_items);
                 this.updateLiveStats($card, response);
@@ -780,6 +908,7 @@
             const $steps = $card.find('.importers-step');
             const $dots = $card.find('.importers-step-dot');
             const $backButton = $card.find('.importers-back-button');
+            const $cancelButton = $card.find('.importers-cancel-button');
             const $nextButton = $card.find('.importers-next-button');
 
             // Hide all steps, show target
@@ -800,6 +929,9 @@
             // Update buttons based on step
             // Back button only shown on step 2 (mapping) - not during processing or completion
             $backButton.toggle(step === 2);
+
+            // Cancel button only shown on step 3 (processing)
+            $cancelButton.toggle(step === 3);
 
             // Reset next button icon to arrow (will be changed to update icon on step 4)
             $nextButton.find('.dashicons')
@@ -915,12 +1047,16 @@
          */
         resetSyncUI: function ($card, finalStatus = 'idle') {
             const $button = $card.find('.importers-sync-button');
+            const $cancelButton = $card.find('.importers-cancel-button');
             const $progress = $card.find('.importers-progress-wrap');
             const $statusBadge = $card.find('.importers-status-badge');
 
             // Reset button
             $button.removeClass('is-syncing').prop('disabled', false);
             $button.find('.button-text').text(i18n.syncNow);
+
+            // Hide cancel button
+            $cancelButton.hide();
 
             // Hide progress bar
             $progress.hide();
@@ -951,6 +1087,7 @@
         resetImportUI: function ($card) {
             // Clear file data
             $card.removeData('file');
+            $card.removeData('previewData');
             $card.removeData('totalItems');
             $card.find('.importers-file-input').val('');
 
@@ -958,15 +1095,23 @@
             $card.find('.importers-dropzone').show();
             $card.find('.importers-file-info').hide();
 
-            // Clear mapping
+            // Clear mapping and preview
             $card.find('.importers-mapping-grid').empty();
             $card.find('.importers-preview-table thead, .importers-preview-table tbody').empty();
 
+            // Reset progress
+            $card.find('.importers-progress-fill').css('width', '0%');
+            $card.find('.importers-progress-status').text('');
+            $card.find('.importers-progress-percent').text('0%');
+
+            // Reset live stats
+            $card.find('.importers-stat-created').text('0');
+            $card.find('.importers-stat-updated').text('0');
+            $card.find('.importers-stat-skipped').text('0');
+            $card.find('.importers-stat-failed').text('0');
+
             // Clear log
             $card.find('.importers-log-entries').empty();
-
-            // Reset progress
-            $card.find('.importers-progress-fill').css('width', '0');
 
             // Reset button
             const $nextButton = $card.find('.importers-next-button');
