@@ -127,11 +127,41 @@ trait OperationRenderer {
 					<span class="importers-stat-value"><?php echo esc_html( number_format_i18n( $stats['created'] + $stats['updated'] ) ); ?></span>
 					<span class="importers-stat-label"><?php esc_html_e( 'Synced', 'arraypress' ); ?></span>
 				</div>
-				<div class="importers-stat importers-stat-error">
+				<div class="importers-stat importers-stat-error<?php echo $stats['failed'] > 0 ? ' has-errors' : ''; ?>">
 					<span class="importers-stat-value"><?php echo esc_html( number_format_i18n( $stats['failed'] ) ); ?></span>
 					<span class="importers-stat-label"><?php esc_html_e( 'Errors', 'arraypress' ); ?></span>
 				</div>
 			</div>
+
+			<?php if ( ! empty( $stats['errors'] ) ) : ?>
+			<!-- Stored errors panel (hidden by default) -->
+			<div class="importers-errors-panel" style="display: none;">
+				<div class="importers-errors-panel-header">
+					<h4><?php esc_html_e( 'Recent Errors', 'arraypress' ); ?></h4>
+					<button type="button" class="importers-errors-close">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
+				</div>
+				<div class="importers-errors-table-wrap">
+					<table class="importers-errors-table">
+						<thead>
+						<tr>
+							<th><?php esc_html_e( 'Item', 'arraypress' ); ?></th>
+							<th><?php esc_html_e( 'Error', 'arraypress' ); ?></th>
+						</tr>
+						</thead>
+						<tbody>
+						<?php foreach ( array_slice( $stats['errors'], 0, 20 ) as $error ) : ?>
+							<tr>
+								<td><?php echo esc_html( $error['item'] ?? '-' ); ?></td>
+								<td><?php echo esc_html( $error['message'] ?? '' ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<?php endif; ?>
 
 			<!-- Progress bar (hidden by default) -->
 			<div class="importers-progress-wrap" style="display: none;">
@@ -347,11 +377,26 @@ trait OperationRenderer {
 			</div>
 
 			<div class="importers-card-footer">
-				<div class="importers-step-indicator">
-					<span class="importers-step-dot active" data-step="1"></span>
-					<span class="importers-step-dot" data-step="2"></span>
-					<span class="importers-step-dot" data-step="3"></span>
-					<span class="importers-step-dot" data-step="4"></span>
+				<div class="importers-footer-left">
+					<div class="importers-step-indicator">
+						<span class="importers-step-dot active" data-step="1"></span>
+						<span class="importers-step-dot" data-step="2"></span>
+						<span class="importers-step-dot" data-step="3"></span>
+						<span class="importers-step-dot" data-step="4"></span>
+					</div>
+					<?php if ( $stats['last_run'] ) : ?>
+						<span class="importers-card-meta importers-last-import">
+							<?php
+							printf(
+								esc_html__( 'Last import: %s', 'arraypress' ),
+								esc_html( StatsManager::get_relative_time( $stats['last_run'] ) )
+							);
+							if ( $stats['source_file'] ) {
+								echo ' <span class="importers-history-file">(' . esc_html( $stats['source_file'] ) . ')</span>';
+							}
+							?>
+						</span>
+					<?php endif; ?>
 				</div>
 				<div class="importers-card-actions">
 					<button type="button" class="button importers-back-button" style="display: none;">
@@ -363,16 +408,6 @@ trait OperationRenderer {
 					</button>
 				</div>
 			</div>
-
-			<?php if ( $stats['last_run'] ) : ?>
-				<div class="importers-card-history">
-					<span class="importers-history-label"><?php esc_html_e( 'Last import:', 'arraypress' ); ?></span>
-					<span class="importers-history-time"><?php echo esc_html( StatsManager::get_relative_time( $stats['last_run'] ) ); ?></span>
-					<?php if ( $stats['source_file'] ) : ?>
-						<span class="importers-history-file">(<?php echo esc_html( $stats['source_file'] ); ?>)</span>
-					<?php endif; ?>
-				</div>
-			<?php endif; ?>
 		</div>
 		<?php
 	}

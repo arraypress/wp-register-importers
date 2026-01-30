@@ -24,8 +24,34 @@
          * Initialize
          */
         init: function() {
+            this.repositionNotices();
             this.bindEvents();
             this.initDropzones();
+        },
+
+        /**
+         * Move any stray notices into the notices container
+         */
+        repositionNotices: function() {
+            const $wrap = $('.importers-wrap');
+            const $noticesContainer = $wrap.find('.importers-notices');
+
+            if (!$noticesContainer.length) return;
+
+            // Move any notices that appear inside the header into our container
+            $wrap.find('.importers-header .notice, .importers-header .updated, .importers-header .error').each(function() {
+                $(this).appendTo($noticesContainer);
+            });
+
+            // Move any notices that appear before or after the header into our container
+            $wrap.find('.notice, .updated, .error').not('.importers-notices .notice, .importers-notices .updated, .importers-notices .error').each(function() {
+                $(this).appendTo($noticesContainer);
+            });
+
+            // Also catch notices WordPress injects at wrap level
+            $wrap.siblings('.notice, .updated, .error').each(function() {
+                $(this).appendTo($noticesContainer);
+            });
         },
 
         /**
@@ -40,6 +66,10 @@
             $(document).on('click', '.importers-file-remove', this.handleFileRemove.bind(this));
             $(document).on('click', '.importers-next-button', this.handleNextStep.bind(this));
             $(document).on('click', '.importers-back-button', this.handleBackStep.bind(this));
+
+            // Errors panel
+            $(document).on('click', '.importers-stat-error.has-errors', this.handleErrorsClick.bind(this));
+            $(document).on('click', '.importers-errors-close', this.handleErrorsClose.bind(this));
         },
 
         /**
@@ -61,6 +91,28 @@
                         $dropzone.removeClass('is-dragover');
                     });
             });
+        },
+
+        /**
+         * Handle click on errors stat to show errors panel
+         */
+        handleErrorsClick: function(e) {
+            const $stat = $(e.currentTarget);
+            const $card = $stat.closest('.importers-card');
+            const $panel = $card.find('.importers-errors-panel');
+
+            if ($panel.length) {
+                $panel.slideToggle(200);
+            }
+        },
+
+        /**
+         * Handle close button on errors panel
+         */
+        handleErrorsClose: function(e) {
+            e.preventDefault();
+            const $panel = $(e.currentTarget).closest('.importers-errors-panel');
+            $panel.slideUp(200);
         },
 
         /**
