@@ -86,32 +86,52 @@
         startSync: function($card, operationId) {
             const $button = $card.find('.importers-sync-button');
             const $progress = $card.find('.importers-progress-wrap');
+            const $log = $card.find('.importers-log');
+            const $statusBadge = $card.find('.importers-status-badge');
 
-            // Update UI
+            // Update UI - show running state
             $button.addClass('is-syncing').prop('disabled', true);
             $button.find('.button-text').text(i18n.syncing);
             $progress.show();
+            $log.show();
+            
+            // Update status badge
+            $statusBadge
+                .removeClass('importers-status-idle importers-status-success importers-status-error')
+                .addClass('importers-status-running')
+                .text(i18n.statusRunning || 'Running');
+
+            // Clear previous log entries
+            $card.find('.importers-log-entries').html('<div class="importers-log-placeholder">Starting sync...</div>');
 
             const startTime = Date.now();
             let cursor = '';
+
+            // Log start
+            this.logActivity($card, 'Starting sync operation...', 'info');
 
             // Start sync
             this.apiRequest('sync/start', {
                 page_id: pageId,
                 operation_id: operationId
             }).then(response => {
+                this.logActivity($card, 'Connected successfully, fetching data...', 'success');
                 // Process batches
-                this.processSyncBatch($card, operationId, cursor, startTime);
+                this.processSyncBatch($card, operationId, cursor, startTime, 1);
             }).catch(error => {
-                this.showError($card, error.message || i18n.errorOccurred);
-                this.resetSyncUI($card);
+                this.logActivity($card, 'Failed to start: ' + (error.message || i18n.errorOccurred), 'error');
+                this.resetSyncUI($card, 'error');
             });
         },
 
         /**
          * Process a sync batch
          */
-        processSyncBatch: function($card, operationId, cursor, startTime) {
+        processSyncBatch: function($card, operationId, cursor, startTime, batchNum) {
+            const operation = operations[operationId] || {};
+            const singular = operation.singular || 'item';
+            const plural = operation.plural || 'items';
+
             this.apiRequest('sync/batch', {
                 page_id: pageId,
                 operation_id: operationId,
@@ -121,17 +141,36 @@
                 this.updateProgress($card, response.percentage, response.total_processed, response.total_items);
                 this.updateSyncLiveStats($card, response);
 
+                // Log batch progress
+                const batchMsg = `Batch ${batchNum}: Processed ${response.processed} ${response.processed === 1 ? singular : plural} (${response.created} created, ${response.updated} updated)`;
+                this.logActivity($card, batchMsg, 'info');
+
+                // Log any errors from this batch
+                if (response.errors && response.errors.length > 0) {
+                    response.errors.forEach(err => {
+                        this.logActivity($card, `Error [${err.item}]: ${err.message}`, 'error');
+                    });
+                }
+
                 if (response.has_more) {
                     // Continue with next batch
-                    this.processSyncBatch($card, operationId, response.cursor, startTime);
+                    this.processSyncBatch($card, operationId, response.cursor, startTime, batchNum + 1);
                 } else {
                     // Complete
                     const duration = Math.round((Date.now() - startTime) / 1000);
+                    const hasErrors = (response.stats?.failed || 0) > 0;
+                    
+                    this.logActivity($card, `Sync complete! ${response.total_processed} ${plural} processed in ${this.formatDuration(duration)}`, 'success');
+                    
+                    if (hasErrors) {
+                        this.logActivity($card, `${response.stats.failed} ${plural} had errors`, 'warning');
+                    }
+                    
                     this.completeOperation($card, operationId, 'sync', duration, response.stats);
                 }
             }).catch(error => {
-                this.showError($card, error.message || i18n.errorOccurred);
-                this.resetSyncUI($card);
+                this.logActivity($card, 'Batch failed: ' + (error.message || i18n.errorOccurred), 'error');
+                this.resetSyncUI($card, 'error');
             });
         },
 
@@ -315,7 +354,7 @@
                             <span class="importers-mapping-field-label">${this.escapeHtml(label)}</span>
                             ${isRequired ? `<span class="importers-mapping-required">*</span>` : ''}
                         </div>
-                        <span class="importers-mapping-arrow dashicons dashicons-arrow-left-alt"></span>
+                        <span class="importers-mapping-arrow"><span class="dashicons dashicons-arrow-left-alt"></span></span>
                         <select class="importers-mapping-select">${selectOptions}</select>
                     </div>
                 `;
@@ -389,6 +428,10 @@
             // Move to progress step
             this.goToStep($card, 3);
 
+            // Clear log and add starting message
+            $card.find('.importers-log-entries').html('');
+            this.logActivity($card, 'Starting import...', 'info');
+
             const startTime = Date.now();
 
             // Initialize import
@@ -399,16 +442,17 @@
                 field_map: fieldMap
             }).then(response => {
                 $card.data('totalItems', response.total_items);
-                this.processImportBatch($card, operationId, fileData.uuid, fieldMap, 0, startTime);
+                this.logActivity($card, `Processing ${response.total_items} rows...`, 'info');
+                this.processImportBatch($card, operationId, fileData.uuid, fieldMap, 0, startTime, 1);
             }).catch(error => {
-                this.showError($card, error.message || i18n.errorOccurred);
+                this.logActivity($card, 'Failed to start: ' + (error.message || i18n.errorOccurred), 'error');
             });
         },
 
         /**
          * Process an import batch
          */
-        processImportBatch: function($card, operationId, uuid, fieldMap, offset, startTime) {
+        processImportBatch: function($card, operationId, uuid, fieldMap, offset, startTime, batchNum) {
             this.apiRequest('import/batch', {
                 page_id: pageId,
                 operation_id: operationId,
@@ -421,7 +465,7 @@
                 this.updateLiveStats($card, response);
 
                 // Log activity
-                this.logActivity($card, `Batch ${response.batch}: ${response.processed} rows (${response.created} created, ${response.updated} updated, ${response.skipped} skipped)`);
+                this.logActivity($card, `Batch ${batchNum}: ${response.processed} rows (${response.created} created, ${response.updated} updated, ${response.skipped} skipped)`);
 
                 if (response.errors && response.errors.length > 0) {
                     response.errors.forEach(err => {
@@ -431,14 +475,15 @@
 
                 if (response.has_more) {
                     // Continue with next batch
-                    this.processImportBatch($card, operationId, uuid, fieldMap, response.offset, startTime);
+                    this.processImportBatch($card, operationId, uuid, fieldMap, response.offset, startTime, batchNum + 1);
                 } else {
                     // Complete
                     const duration = Math.round((Date.now() - startTime) / 1000);
+                    this.logActivity($card, `Import complete in ${this.formatDuration(duration)}!`, 'success');
                     this.completeOperation($card, operationId, 'import', duration, response.stats, uuid);
                 }
             }).catch(error => {
-                this.showError($card, error.message || i18n.errorOccurred);
+                this.logActivity($card, 'Batch failed: ' + (error.message || i18n.errorOccurred), 'error');
             });
         },
 
@@ -475,7 +520,8 @@
             });
 
             if (type === 'sync') {
-                this.resetSyncUI($card);
+                const hasErrors = (stats?.failed || 0) > 0;
+                this.resetSyncUI($card, hasErrors ? 'error' : 'success');
                 this.updateSyncCardStats($card, stats);
             } else {
                 // Show completion step
@@ -625,7 +671,7 @@
         updateSyncCardStats: function($card, stats) {
             const $stats = $card.find('.importers-card-stats .importers-stat-value');
             if ($stats.length >= 3) {
-                $stats.eq(0).text(stats.total || 0);
+                $stats.eq(0).text(stats.total || (stats.created + stats.updated + stats.skipped + stats.failed) || 0);
                 $stats.eq(1).text((stats.created || 0) + (stats.updated || 0));
                 $stats.eq(2).text(stats.failed || 0);
             }
@@ -633,19 +679,22 @@
         },
 
         /**
-         * Log activity message (only for import cards with log element)
+         * Log activity message
          */
         logActivity: function($card, message, type = 'info') {
             const $log = $card.find('.importers-log-entries');
             
-            // Only log if log element exists (import cards have it, sync cards don't)
+            // If no log element exists, just console log
             if ($log.length === 0) {
-                console.log(`[Importers] ${type}: ${message}`);
+                console.log(`[Importers ${type}]`, message);
                 return;
             }
 
+            // Remove placeholder if present
+            $log.find('.importers-log-placeholder').remove();
+
             const time = new Date().toLocaleTimeString();
-            const entryClass = type === 'error' ? 'is-error' : (type === 'success' ? 'is-success' : '');
+            const entryClass = type === 'error' ? 'is-error' : (type === 'success' ? 'is-success' : (type === 'warning' ? 'is-warning' : ''));
 
             $log.append(`
                 <div class="importers-log-entry ${entryClass}">
@@ -662,19 +711,39 @@
 
         /**
          * Reset sync UI to initial state
+         * @param {jQuery} $card - The card element
+         * @param {string} finalStatus - 'idle', 'success', or 'error'
          */
-        resetSyncUI: function($card) {
+        resetSyncUI: function($card, finalStatus = 'idle') {
             const $button = $card.find('.importers-sync-button');
             const $progress = $card.find('.importers-progress-wrap');
+            const $statusBadge = $card.find('.importers-status-badge');
 
+            // Reset button
             $button.removeClass('is-syncing').prop('disabled', false);
             $button.find('.button-text').text(i18n.syncNow);
+            
+            // Hide progress bar
             $progress.hide();
 
-            // Reset progress bar
+            // Reset progress bar values
             $card.find('.importers-progress-fill').css('width', '0');
             $card.find('.importers-progress-status').text('');
             $card.find('.importers-progress-percent').text('0%');
+
+            // Update status badge based on result
+            $statusBadge.removeClass('importers-status-idle importers-status-running importers-status-success importers-status-error');
+            
+            switch (finalStatus) {
+                case 'success':
+                    $statusBadge.addClass('importers-status-success').text(i18n.statusComplete || 'Complete');
+                    break;
+                case 'error':
+                    $statusBadge.addClass('importers-status-error').text(i18n.statusError || 'Error');
+                    break;
+                default:
+                    $statusBadge.addClass('importers-status-idle').text(i18n.statusIdle || 'Ready');
+            }
         },
 
         /**
@@ -714,17 +783,8 @@
          * Show error message
          */
         showError: function($card, message) {
-            // Log to console always
             console.error('[Importers Error]', message);
-            
-            // Try to log to card if it has a log element
-            const $log = $card.find('.importers-log-entries');
-            if ($log.length > 0) {
-                this.logActivity($card, message, 'error');
-            } else {
-                // For sync cards, show an alert or notice
-                alert(i18n.error + ': ' + message);
-            }
+            this.logActivity($card, message, 'error');
         },
 
         /**

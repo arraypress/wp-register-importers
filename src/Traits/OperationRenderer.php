@@ -144,6 +144,16 @@ trait OperationRenderer {
 				</div>
 			</div>
 
+			<!-- Activity log (hidden by default, shown during sync) -->
+			<div class="importers-log" style="display: none;">
+				<div class="importers-log-header">
+					<h4><?php esc_html_e( 'Activity Log', 'arraypress' ); ?></h4>
+				</div>
+				<div class="importers-log-entries">
+					<div class="importers-log-placeholder"><?php esc_html_e( 'Waiting to start...', 'arraypress' ); ?></div>
+				</div>
+			</div>
+
 			<div class="importers-card-footer">
 				<div class="importers-card-meta">
 					<span class="importers-last-run">
