@@ -86,7 +86,6 @@
         startSync: function($card, operationId) {
             const $button = $card.find('.importers-sync-button');
             const $progress = $card.find('.importers-progress-wrap');
-            const operation = operations[operationId];
 
             // Update UI
             $button.addClass('is-syncing').prop('disabled', true);
@@ -120,16 +119,7 @@
             }).then(response => {
                 // Update progress
                 this.updateProgress($card, response.percentage, response.total_processed, response.total_items);
-                this.updateLiveStats($card, response);
-
-                // Log activity
-                this.logActivity($card, `Processed ${response.processed} items (${response.created} created, ${response.updated} updated)`);
-
-                if (response.errors && response.errors.length > 0) {
-                    response.errors.forEach(err => {
-                        this.logActivity($card, `Error: ${err.item} - ${err.message}`, 'error');
-                    });
-                }
+                this.updateSyncLiveStats($card, response);
 
                 if (response.has_more) {
                     // Continue with next batch
@@ -204,7 +194,7 @@
                     $dropzone.hide();
                     $fileInfo.show();
                     $fileInfo.find('.importers-file-name').text(data.file.original_name);
-                    $fileInfo.find('.importers-file-size').text(`${data.file.size_human} • ${data.file.rows} ${i18n.rowsDetected.replace('%d', data.file.rows)}`);
+                    $fileInfo.find('.importers-file-size').text(`${data.file.size_human} • ${data.file.rows} rows`);
 
                     // Enable next button
                     $nextButton.prop('disabled', false);
@@ -486,8 +476,7 @@
 
             if (type === 'sync') {
                 this.resetSyncUI($card);
-                this.updateSyncStats($card, stats);
-                this.logActivity($card, `${i18n.syncComplete} ${this.formatDuration(duration)}`, 'success');
+                this.updateSyncCardStats($card, stats);
             } else {
                 // Show completion step
                 this.showImportComplete($card, stats, duration);
@@ -609,7 +598,7 @@
         },
 
         /**
-         * Update live stats display
+         * Update live stats display (for imports)
          */
         updateLiveStats: function($card, data) {
             $card.find('.importers-stat-created').text(data.stats?.created || 0);
@@ -619,22 +608,43 @@
         },
 
         /**
-         * Update sync card stats
+         * Update sync live stats (for sync cards - in the card stats section)
          */
-        updateSyncStats: function($card, stats) {
-            $card.find('.importers-stat-value').eq(0).text(stats.total);
-            $card.find('.importers-stat-value').eq(1).text(stats.created + stats.updated);
-            $card.find('.importers-stat-value').eq(2).text(stats.failed);
+        updateSyncLiveStats: function($card, data) {
+            const $stats = $card.find('.importers-card-stats .importers-stat-value');
+            if ($stats.length >= 3) {
+                $stats.eq(0).text(data.total_items || 0);
+                $stats.eq(1).text((data.stats?.created || 0) + (data.stats?.updated || 0));
+                $stats.eq(2).text(data.stats?.failed || 0);
+            }
+        },
+
+        /**
+         * Update sync card stats after completion
+         */
+        updateSyncCardStats: function($card, stats) {
+            const $stats = $card.find('.importers-card-stats .importers-stat-value');
+            if ($stats.length >= 3) {
+                $stats.eq(0).text(stats.total || 0);
+                $stats.eq(1).text((stats.created || 0) + (stats.updated || 0));
+                $stats.eq(2).text(stats.failed || 0);
+            }
             $card.find('.importers-last-run').text(`${i18n.lastSync}: ${i18n.justNow}`);
         },
 
         /**
-         * Log activity message
+         * Log activity message (only for import cards with log element)
          */
         logActivity: function($card, message, type = 'info') {
             const $log = $card.find('.importers-log-entries');
-            const time = new Date().toLocaleTimeString();
+            
+            // Only log if log element exists (import cards have it, sync cards don't)
+            if ($log.length === 0) {
+                console.log(`[Importers] ${type}: ${message}`);
+                return;
+            }
 
+            const time = new Date().toLocaleTimeString();
             const entryClass = type === 'error' ? 'is-error' : (type === 'success' ? 'is-success' : '');
 
             $log.append(`
@@ -645,7 +655,9 @@
             `);
 
             // Scroll to bottom
-            $log.scrollTop($log[0].scrollHeight);
+            if ($log[0]) {
+                $log.scrollTop($log[0].scrollHeight);
+            }
         },
 
         /**
@@ -702,8 +714,17 @@
          * Show error message
          */
         showError: function($card, message) {
-            this.logActivity($card, message, 'error');
-            // Could also show a notice/toast here
+            // Log to console always
+            console.error('[Importers Error]', message);
+            
+            // Try to log to card if it has a log element
+            const $log = $card.find('.importers-log-entries');
+            if ($log.length > 0) {
+                this.logActivity($card, message, 'error');
+            } else {
+                // For sync cards, show an alert or notice
+                alert(i18n.error + ': ' + message);
+            }
         },
 
         /**

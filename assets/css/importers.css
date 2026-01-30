@@ -50,11 +50,10 @@
 }
 
 /* ==========================================================================
-   Base Layout
+   Base Layout - Full Width
    ========================================================================== */
 
 .importers-wrap {
-    max-width: 1400px;
     margin: 20px 20px 20px 0;
 }
 
@@ -63,7 +62,7 @@
 }
 
 /* ==========================================================================
-   Header
+   Header - Full Width
    ========================================================================== */
 
 .importers-header {
@@ -99,10 +98,12 @@
     margin: 0;
     padding: 0;
     color: var(--importers-text);
+    line-height: 1.3;
 }
 
 .importers-header-tabs {
     padding: 0 var(--importers-spacing-lg);
+    border-bottom: 1px solid var(--importers-border-light);
 }
 
 /* ==========================================================================
@@ -135,19 +136,27 @@
     background: var(--importers-info-bg);
 }
 
-.importers-tab-active {
+.importers-tab:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.importers-tab-active,
+.importers-tab-active:hover {
     color: var(--importers-primary);
     border-bottom-color: var(--importers-primary);
+    background: transparent;
 }
 
 .importers-tab .dashicons {
     font-size: 18px;
     width: 18px;
     height: 18px;
+    line-height: 18px;
 }
 
 /* ==========================================================================
-   Content Area
+   Content Area - Full Width
    ========================================================================== */
 
 .importers-content {
@@ -159,12 +168,12 @@
 }
 
 /* ==========================================================================
-   Operations Grid
+   Operations Grid - Full Width
    ========================================================================== */
 
 .importers-operations-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
     gap: var(--importers-spacing-lg);
 }
 
@@ -208,6 +217,7 @@
     font-size: 24px;
     width: 24px;
     height: 24px;
+    line-height: 24px;
     color: var(--importers-primary);
 }
 
@@ -221,12 +231,14 @@
     font-size: 16px;
     font-weight: 600;
     color: var(--importers-text);
+    line-height: 1.3;
 }
 
 .importers-card-description {
     margin: 0;
     font-size: 13px;
     color: var(--importers-text-muted);
+    line-height: 1.4;
 }
 
 /* Card Status */
@@ -345,6 +357,7 @@
     font-size: 16px;
     width: 16px;
     height: 16px;
+    line-height: 16px;
 }
 
 .importers-sync-button.is-syncing .dashicons {
@@ -404,7 +417,7 @@
     position: relative;
     border: 2px dashed var(--importers-border);
     border-radius: var(--importers-radius-md);
-    padding: var(--importers-spacing-xl);
+    padding: 48px 24px;
     text-align: center;
     transition: all 0.2s ease;
     cursor: pointer;
@@ -438,6 +451,7 @@
     font-size: 48px;
     width: 48px;
     height: 48px;
+    line-height: 48px;
     color: var(--importers-text-muted);
 }
 
@@ -471,6 +485,7 @@
     font-size: 32px;
     width: 32px;
     height: 32px;
+    line-height: 32px;
     color: var(--importers-success);
 }
 
@@ -614,6 +629,7 @@
 }
 
 .importers-log-entries {
+    min-height: 100px;
     max-height: 200px;
     overflow-y: auto;
     padding: var(--importers-spacing-md);
@@ -653,7 +669,7 @@
 
 .importers-complete-summary {
     text-align: center;
-    padding: var(--importers-spacing-xl);
+    padding: 48px 24px;
 }
 
 .importers-complete-icon {
@@ -664,6 +680,7 @@
     font-size: 64px;
     width: 64px;
     height: 64px;
+    line-height: 64px;
     color: var(--importers-success);
 }
 
@@ -677,7 +694,7 @@
 .importers-complete-stats {
     display: flex;
     justify-content: center;
-    gap: var(--importers-spacing-xl);
+    gap: 32px;
     margin-bottom: var(--importers-spacing-lg);
 }
 
@@ -747,7 +764,7 @@
 
 .importers-empty-state {
     text-align: center;
-    padding: var(--importers-spacing-xl) * 2;
+    padding: 64px 24px;
     background: var(--importers-bg-white);
     border: 1px solid var(--importers-border-light);
     border-radius: var(--importers-radius-lg);
@@ -757,6 +774,7 @@
     font-size: 64px;
     width: 64px;
     height: 64px;
+    line-height: 64px;
     color: var(--importers-text-muted);
     margin-bottom: var(--importers-spacing-md);
 }
