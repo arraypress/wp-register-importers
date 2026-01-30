@@ -9,10 +9,12 @@ A WordPress library for registering import and sync operations with batch proces
 - **Batch Processing** - Process large datasets without timeouts using AJAX batches
 - **CSV Imports** - Upload, preview, map fields, and import CSV files
 - **API Syncs** - Pull data from external APIs with cursor-based pagination
-- **Progress Tracking** - Real-time progress bars and activity logs
+- **Real-time Progress** - Progress bars and live activity logs
+- **Dynamic Preview** - CSV preview updates in real-time as you change field mappings
 - **Automatic Stats** - Track created, updated, skipped, and failed items
+- **Error History** - View and copy past errors with one click
 - **Secure File Handling** - UUID filenames, protected directories, auto-cleanup
-- **Error Reporting** - Detailed error logs with row numbers
+- **Responsive Grid** - Cards adapt from 1-4 columns based on count
 
 ## Requirements
 
@@ -31,33 +33,47 @@ composer require arraypress/wp-register-importers
 ```php
 add_action( 'admin_menu', function() {
     register_importers( 'my-plugin', [
-        'page_title'  => 'Import & Sync',
-        'menu_title'  => 'Import & Sync',
-        'parent_slug' => 'my-plugin',
+        'page_title'   => 'Import & Sync',
+        'menu_title'   => 'Import & Sync',
+        'parent_slug'  => 'my-plugin',
+        'header_title' => 'Data Management Center',
         
         'operations' => [
             // Sync from external API
-            'api_products' => [
+            'stripe_products' => [
                 'type'             => 'sync',
-                'title'            => 'Sync Products',
-                'description'      => 'Pull products from external API',
+                'tab'              => 'syncs',
+                'title'            => 'Stripe Products',
+                'description'      => 'Sync products from Stripe API',
+                'icon'             => 'dashicons-money-alt',
+                'singular'         => 'product',
+                'plural'           => 'products',
                 'batch_size'       => 100,
-                'data_callback'    => 'my_fetch_products',
-                'process_callback' => 'my_process_product',
+                'data_callback'    => 'my_fetch_stripe_products',
+                'process_callback' => 'my_process_stripe_product',
             ],
             
             // Import from CSV
             'csv_products' => [
                 'type'             => 'import',
+                'tab'              => 'importers',
                 'title'            => 'Import Products',
-                'description'      => 'Upload products via CSV',
-                'batch_size'       => 100,
+                'description'      => 'Upload products via CSV file',
+                'icon'             => 'dashicons-upload',
+                'batch_size'       => 50,
+                'update_existing'  => true,
+                'match_field'      => 'sku',
+                'skip_empty_rows'  => true,
                 'fields'           => [
-                    'sku'   => ['label' => 'SKU', 'required' => true],
-                    'name'  => ['label' => 'Name', 'required' => true],
-                    'price' => ['label' => 'Price', 'required' => true, 'sanitize_callback' => 'floatval'],
+                    'sku'         => ['label' => 'SKU', 'required' => true],
+                    'name'        => ['label' => 'Name', 'required' => true],
+                    'price'       => ['label' => 'Price', 'required' => true, 'sanitize_callback' => 'floatval'],
+                    'description' => ['label' => 'Description', 'sanitize_callback' => 'wp_kses_post'],
+                    'category'    => ['label' => 'Category'],
+                    'stock'       => ['label' => 'Stock', 'sanitize_callback' => 'absint', 'default' => 0],
                 ],
-                'process_callback' => 'my_import_product',
+                'validate_callback' => 'my_validate_product_row',
+                'process_callback'  => 'my_import_product_row',
             ],
         ],
     ]);
@@ -84,15 +100,22 @@ add_action( 'admin_menu', function() {
 
 ### Tab Options
 
+Customize the default tabs or create your own:
+
 ```php
 'tabs' => [
     'syncs' => [
-        'label' => 'External Syncs',
+        'label' => 'API Syncs',
         'icon'  => 'dashicons-update',
     ],
     'importers' => [
-        'label' => 'CSV Importers', 
+        'label' => 'CSV Imports', 
         'icon'  => 'dashicons-upload',
+    ],
+    // Add custom tabs
+    'exports' => [
+        'label' => 'Exports',
+        'icon'  => 'dashicons-download',
     ],
 ],
 ```
@@ -101,14 +124,14 @@ add_action( 'admin_menu', function() {
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `type` | string | Yes | Must be 'sync' |
+| `type` | string | Yes | Must be `'sync'` |
 | `title` | string | Yes | Display title |
 | `description` | string | No | Short description |
-| `tab` | string | No | Tab to display in (default: 'syncs') |
-| `icon` | string | No | Dashicon class |
-| `singular` | string | No | Singular item name (default: 'item') |
-| `plural` | string | No | Plural item name (default: 'items') |
-| `batch_size` | int | No | Items per batch (default: 100) |
+| `tab` | string | No | Tab to display in (default: `'syncs'`) |
+| `icon` | string | No | Dashicon class (e.g., `'dashicons-cloud'`) |
+| `singular` | string | No | Singular item name (default: `'item'`) |
+| `plural` | string | No | Plural item name (default: `'items'`) |
+| `batch_size` | int | No | Items per batch (default: `100`) |
 | `data_callback` | callable | Yes | Function to fetch data from API |
 | `process_callback` | callable | Yes | Function to process each item |
 
@@ -116,19 +139,19 @@ add_action( 'admin_menu', function() {
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `type` | string | Yes | Must be 'import' |
+| `type` | string | Yes | Must be `'import'` |
 | `title` | string | Yes | Display title |
 | `description` | string | No | Short description |
-| `tab` | string | No | Tab to display in (default: 'importers') |
+| `tab` | string | No | Tab to display in (default: `'importers'`) |
 | `icon` | string | No | Dashicon class |
 | `singular` | string | No | Singular item name |
 | `plural` | string | No | Plural item name |
-| `batch_size` | int | No | Rows per batch (default: 100) |
+| `batch_size` | int | No | Rows per batch (default: `100`) |
 | `fields` | array | Yes | Field definitions for mapping |
 | `update_existing` | bool | No | Allow updating existing records |
 | `match_field` | string | No | Field to match for updates |
 | `skip_empty_rows` | bool | No | Skip rows with all empty values |
-| `validate_callback` | callable | No | Custom validation function |
+| `validate_callback` | callable | No | Custom row validation function |
 | `process_callback` | callable | Yes | Function to process each row |
 
 ### Field Definition Options
@@ -136,15 +159,25 @@ add_action( 'admin_menu', function() {
 ```php
 'fields' => [
     'sku' => [
-        'label'             => 'SKU',
-        'required'          => true,
-        'default'           => null,
-        'sanitize_callback' => 'sanitize_text_field',
+        'label'             => 'SKU',           // Display label
+        'required'          => true,            // Must be mapped
+        'default'           => null,            // Default value if empty
+        'sanitize_callback' => 'sanitize_text_field', // Sanitization function
     ],
     'price' => [
         'label'             => 'Price',
         'required'          => true,
         'sanitize_callback' => 'floatval',
+    ],
+    'description' => [
+        'label'             => 'Description',
+        'required'          => false,
+        'sanitize_callback' => 'wp_kses_post',  // Allow safe HTML
+    ],
+    'stock' => [
+        'label'             => 'Stock Quantity',
+        'sanitize_callback' => 'absint',
+        'default'           => 0,               // Default to 0 if not provided
     ],
 ],
 ```
@@ -153,63 +186,170 @@ add_action( 'admin_menu', function() {
 
 ### Data Callback (Sync Only)
 
-Fetches a batch of items from an external API.
+Fetches a batch of items from an external source. Called repeatedly until `has_more` is `false`.
 
 ```php
-function my_fetch_products( string $cursor, int $batch_size ): array {
-    $response = my_api_client()->get_products([
-        'limit'          => $batch_size,
-        'starting_after' => $cursor,
-    ]);
+/**
+ * Fetch products from Stripe API.
+ *
+ * @param string $cursor    Cursor from previous batch (empty on first call).
+ * @param int    $batch_size Number of items to fetch.
+ *
+ * @return array {
+ *     @type array       $items    Array of items to process.
+ *     @type bool        $has_more Whether more items are available.
+ *     @type string      $cursor   Cursor for next batch.
+ *     @type int|null    $total    Total count if known (for progress bar).
+ * }
+ */
+function my_fetch_stripe_products( string $cursor, int $batch_size ): array {
+    $stripe = new \Stripe\StripeClient( get_option( 'stripe_secret_key' ) );
+    
+    $params = [ 'limit' => $batch_size ];
+    if ( $cursor ) {
+        $params['starting_after'] = $cursor;
+    }
+    
+    $response = $stripe->products->all( $params );
+    
+    $last_item = end( $response->data );
     
     return [
-        'items'    => $response->data,           // Array of items to process
-        'has_more' => $response->has_more,       // bool: more items available?
-        'cursor'   => $response->last_id,        // string: cursor for next batch
-        'total'    => $response->total ?? null,  // int|null: total count if known
+        'items'    => $response->data,
+        'has_more' => $response->has_more,
+        'cursor'   => $last_item ? $last_item->id : '',
+        'total'    => null, // Stripe doesn't provide total count
     ];
 }
 ```
 
 ### Process Callback (Both Sync and Import)
 
-Processes a single item or row. Returns the result status.
+Processes a single item (sync) or row (import). Must return a status string or `WP_Error`.
+
+**Valid return values:**
+- `'created'` - New record was created
+- `'updated'` - Existing record was updated
+- `'skipped'` - Record was intentionally skipped
+- `WP_Error` - Processing failed with error message
 
 ```php
-function my_process_product( $item ): string|WP_Error {
-    // $item is an object (sync) or array (import)
+/**
+ * Process a product from Stripe.
+ *
+ * @param object|array $item The item to process (object for sync, array for import).
+ *
+ * @return string|WP_Error Result status.
+ */
+function my_process_stripe_product( $item ): string|WP_Error {
+    global $wpdb;
     
-    // Validate
-    if ( empty( $item['sku'] ) ) {
-        return new WP_Error( 'missing_sku', 'SKU is required' );
-    }
+    // For sync, $item is typically an object from the API
+    $stripe_id = $item->id;
+    $name      = $item->name;
+    $price     = $item->default_price?->unit_amount / 100;
     
-    // Check if exists
-    $existing = get_product_by_sku( $item['sku'] );
+    // Check if product exists
+    $existing = $wpdb->get_row( $wpdb->prepare(
+        "SELECT * FROM {$wpdb->prefix}products WHERE stripe_id = %s",
+        $stripe_id
+    ) );
+    
+    $data = [
+        'stripe_id' => $stripe_id,
+        'name'      => $name,
+        'price'     => $price,
+        'active'    => $item->active ? 1 : 0,
+        'updated_at' => current_time( 'mysql' ),
+    ];
     
     if ( $existing ) {
-        // Update
-        update_product( $existing->id, $item );
+        $wpdb->update(
+            $wpdb->prefix . 'products',
+            $data,
+            [ 'id' => $existing->id ]
+        );
         return 'updated';
     } else {
-        // Create
-        create_product( $item );
+        $data['created_at'] = current_time( 'mysql' );
+        $wpdb->insert( $wpdb->prefix . 'products', $data );
         return 'created';
     }
+}
+
+/**
+ * Process a row from CSV import.
+ *
+ * @param array $row Mapped and sanitized row data.
+ *
+ * @return string|WP_Error Result status.
+ */
+function my_import_product_row( array $row ): string|WP_Error {
+    global $wpdb;
     
-    // Other valid returns: 'skipped'
+    // Row keys match your field definitions
+    $sku   = $row['sku'];
+    $name  = $row['name'];
+    $price = $row['price'];
+    
+    // Check for existing by SKU
+    $existing = $wpdb->get_row( $wpdb->prepare(
+        "SELECT * FROM {$wpdb->prefix}products WHERE sku = %s",
+        $sku
+    ) );
+    
+    if ( $existing ) {
+        $wpdb->update(
+            $wpdb->prefix . 'products',
+            [
+                'name'       => $name,
+                'price'      => $price,
+                'updated_at' => current_time( 'mysql' ),
+            ],
+            [ 'id' => $existing->id ]
+        );
+        return 'updated';
+    } else {
+        $wpdb->insert( $wpdb->prefix . 'products', [
+            'sku'        => $sku,
+            'name'       => $name,
+            'price'      => $price,
+            'created_at' => current_time( 'mysql' ),
+        ] );
+        return 'created';
+    }
 }
 ```
 
 ### Validate Callback (Import Only)
 
-Optional pre-processing validation.
+Optional pre-processing validation. Called before `process_callback` for each row.
 
 ```php
-function my_validate_row( array $row ): true|WP_Error {
+/**
+ * Validate a product row before import.
+ *
+ * @param array $row The mapped row data.
+ *
+ * @return true|WP_Error True if valid, WP_Error if invalid.
+ */
+function my_validate_product_row( array $row ): true|WP_Error {
+    // Check SKU length
     if ( strlen( $row['sku'] ) < 3 ) {
         return new WP_Error( 'invalid_sku', 'SKU must be at least 3 characters' );
     }
+    
+    // Check price is positive
+    if ( $row['price'] <= 0 ) {
+        return new WP_Error( 'invalid_price', 'Price must be greater than 0' );
+    }
+    
+    // Check for duplicate SKU in same import
+    static $seen_skus = [];
+    if ( in_array( $row['sku'], $seen_skus, true ) ) {
+        return new WP_Error( 'duplicate_sku', 'Duplicate SKU in import file' );
+    }
+    $seen_skus[] = $row['sku'];
     
     return true;
 }
@@ -218,45 +358,109 @@ function my_validate_row( array $row ): true|WP_Error {
 ## Helper Functions
 
 ```php
-// Get a registered importers page
+// Register importers (primary function)
+register_importers( 'my-plugin', $config );
+
+// Get a registered importers instance
 $importers = get_importer( 'my-plugin' );
 
-// Check if exists
+// Check if an importer page exists
 if ( importer_exists( 'my-plugin' ) ) {
     // ...
 }
 
-// Get stats for an operation
-$stats = get_importer_stats( 'my-plugin', 'api_products' );
-// Returns: ['last_run', 'duration', 'total', 'created', 'updated', 'skipped', 'failed', 'errors', 'history']
+// Get stats for a specific operation
+$stats = get_importer_stats( 'my-plugin', 'stripe_products' );
+/*
+Returns array:
+[
+    'last_run'     => '2025-01-30 12:00:00',
+    'last_status'  => 'complete', // 'complete', 'error', 'cancelled'
+    'duration'     => 45,         // seconds
+    'total'        => 150,
+    'created'      => 10,
+    'updated'      => 140,
+    'skipped'      => 0,
+    'failed'       => 0,
+    'errors'       => [],         // Array of error details
+    'history'      => [],         // Last 20 runs
+    'run_count'    => 5,
+    'source_file'  => null,       // For imports: original filename
+]
+*/
 
-// Clear stats
-clear_importer_stats( 'my-plugin', 'api_products' );
+// Clear stats for an operation
+clear_importer_stats( 'my-plugin', 'stripe_products' );
 
-// Unregister
+// Unregister an importer page
 unregister_importer( 'my-plugin' );
 
-// Get all registered
+// Get all registered importer pages
 $all = get_all_importers();
 ```
+
+## User Interface Features
+
+### Activity Log
+
+Both sync and import operations display a real-time activity log showing:
+- Batch progress with counts (created, updated, skipped, failed)
+- Individual errors with item identifiers
+- Completion summary with duration
+
+The log can be closed after completion using the X button.
+
+### Error History
+
+When operations have errors, the "Errors" count becomes clickable. Clicking it reveals a panel showing:
+- Recent errors from the last run (up to 20 displayed)
+- Item identifier and error message
+- "Copy" button to copy all errors to clipboard as tab-separated text
+
+### Dynamic Field Mapping Preview
+
+During CSV import, the preview table updates in real-time as you change field mappings:
+- Shows your target fields as columns (not raw CSV headers)
+- Updates immediately when you change a dropdown
+- Unmapped fields appear grayed out with "(unmapped)" label
+- Helps verify your mapping is correct before starting import
+
+### Responsive Grid Layout
+
+Operation cards automatically arrange based on count:
+- 1 operation: Full width
+- 2 operations: 2 columns
+- 3 operations: 3 columns
+- 4+ operations: Responsive grid (max 4 columns on large screens)
+
+Collapses to fewer columns on smaller screens.
+
+### Step Navigation (Imports)
+
+Import operations use a 4-step wizard:
+1. **Upload** - Drop or select CSV file
+2. **Map Fields** - Map CSV columns to your fields with live preview
+3. **Processing** - Watch progress with activity log
+4. **Complete** - Summary with stats and error details
 
 ## File Security
 
 Uploaded CSV files are stored securely:
 
 - **Location**: `/wp-content/uploads/importers/{page_id}/{uuid}.csv`
-- **UUID Filenames**: Original filenames are never used
+- **UUID Filenames**: Original filenames are never exposed in the filesystem
 - **Protected Directory**: `.htaccess` and `index.php` block direct access
 - **Auto-Cleanup**: Files deleted after import completion
-- **Expiration**: Abandoned files cleaned up after 24 hours
+- **Expiration**: Abandoned files cleaned up after 24 hours via WP-Cron
 
 ## Stats Storage
 
 Stats are stored in WordPress options:
 
 - **Option Key**: `importers_stats_{page_id}_{operation_id}`
-- **Auto-Tracked**: No custom callback required
+- **Auto-Tracked**: No custom code required
 - **History**: Last 20 runs stored per operation
+- **Error Limit**: Up to 50 errors stored per run
 
 ## REST API Endpoints
 
@@ -265,13 +469,35 @@ The library registers endpoints under `importers/v1/`:
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/upload` | POST | Upload CSV file |
-| `/preview/{uuid}` | GET | Get CSV preview |
-| `/import/start` | POST | Initialize import |
+| `/preview/{uuid}` | GET | Get CSV preview (first 5 rows + headers) |
+| `/import/start` | POST | Initialize import operation |
 | `/import/batch` | POST | Process import batch |
-| `/sync/start` | POST | Initialize sync |
+| `/sync/start` | POST | Initialize sync operation |
 | `/sync/batch` | POST | Process sync batch |
 | `/complete` | POST | Mark operation complete |
-| `/stats/{page}/{op}` | GET | Get operation stats |
+| `/stats/{page}/{operation}` | GET | Get operation stats |
+
+All endpoints require the `wp_rest` nonce and appropriate user capabilities.
+
+## Complete Example
+
+See the `examples/sugarcart-example.php` file for a complete working example including:
+- Multiple sync operations (products, customers, orders)
+- CSV import with validation
+- Database table creation on activation
+- All callback implementations
+
+## Changelog
+
+### 1.0.0
+- Initial release
+- Sync and import operations with batch processing
+- CSV field mapping with dynamic preview
+- Real-time activity logs
+- Clickable error history with copy to clipboard
+- Responsive card grid layout
+- Automatic stats tracking and history
+- Secure file handling with auto-cleanup
 
 ## License
 

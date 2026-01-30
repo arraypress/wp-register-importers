@@ -68,8 +68,10 @@ trait OperationRenderer {
 	 * @return void
 	 */
 	protected function render_syncs_grid( array $syncs ): void {
+		$count       = count( $syncs );
+		$count_class = $this->get_grid_count_class( $count );
 		?>
-		<div class="importers-operations-grid importers-syncs-grid">
+		<div class="importers-operations-grid importers-syncs-grid <?php echo esc_attr( $count_class ); ?>">
 			<?php foreach ( $syncs as $id => $operation ) : ?>
 				<?php $this->render_sync_card( $id, $operation ); ?>
 			<?php endforeach; ?>
@@ -225,8 +227,10 @@ trait OperationRenderer {
 	 * @return void
 	 */
 	protected function render_imports_grid( array $imports ): void {
+		$count       = count( $imports );
+		$count_class = $this->get_grid_count_class( $count );
 		?>
-		<div class="importers-operations-grid importers-imports-grid">
+		<div class="importers-operations-grid importers-imports-grid <?php echo esc_attr( $count_class ); ?>">
 			<?php foreach ( $imports as $id => $operation ) : ?>
 				<?php $this->render_import_card( $id, $operation ); ?>
 			<?php endforeach; ?>
@@ -493,6 +497,23 @@ trait OperationRenderer {
 			default:
 				return __( 'Ready', 'arraypress' );
 		}
+	}
+
+	/**
+	 * Get CSS class for grid based on item count.
+	 *
+	 * @param int $count Number of items in the grid.
+	 *
+	 * @return string CSS class name.
+	 */
+	protected function get_grid_count_class( int $count ): string {
+		return match ( true ) {
+			$count === 1 => 'has-1-item',
+			$count === 2 => 'has-2-items',
+			$count === 3 => 'has-3-items',
+			$count === 4 => 'has-4-items',
+			default      => 'has-many-items',
+		};
 	}
 
 }

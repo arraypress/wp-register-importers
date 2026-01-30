@@ -146,15 +146,42 @@
 
 .importers-operations-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: 1fr;
     gap: 20px;
-    max-width: 100%;
 }
 
-/* Limit to max 4 columns */
-@media screen and (min-width: 1400px) {
-    .importers-operations-grid {
-        grid-template-columns: repeat(4, 1fr);
+/* 2 items: 2 columns */
+.importers-operations-grid.has-2-items {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* 3 items: 3 columns */
+.importers-operations-grid.has-3-items {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* 4+ items: max 4 columns with auto-fill */
+.importers-operations-grid.has-4-items,
+.importers-operations-grid.has-many-items {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 1200px) {
+    .importers-operations-grid.has-3-items,
+    .importers-operations-grid.has-4-items,
+    .importers-operations-grid.has-many-items {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media screen and (max-width: 782px) {
+    .importers-operations-grid,
+    .importers-operations-grid.has-2-items,
+    .importers-operations-grid.has-3-items,
+    .importers-operations-grid.has-4-items,
+    .importers-operations-grid.has-many-items {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -818,6 +845,17 @@
 
 .importers-preview-table tr:last-child td {
     border-bottom: none;
+}
+
+.importers-preview-table th.unmapped,
+.importers-preview-table td.unmapped {
+    color: #a7aaad;
+    font-style: italic;
+}
+
+.importers-preview-table th.unmapped small {
+    font-weight: 400;
+    font-size: 10px;
 }
 
 /* ==========================================================================

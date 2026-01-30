@@ -66,6 +66,7 @@
             $(document).on('click', '.importers-file-remove', this.handleFileRemove.bind(this));
             $(document).on('click', '.importers-next-button', this.handleNextStep.bind(this));
             $(document).on('click', '.importers-back-button', this.handleBackStep.bind(this));
+            $(document).on('change', '.importers-mapping-select', this.handleMappingChange.bind(this));
 
             // Errors panel
             $(document).on('click', '.importers-stat-error.has-errors', this.handleErrorsClick.bind(this));
@@ -478,44 +479,93 @@
                 $mappingGrid.append(rowHtml);
             });
 
-            // Load preview
-            this.loadPreview($card, fileData.uuid);
+            // Load preview data and render based on mapping
+            this.loadPreview($card, fileData.uuid, operationId);
 
             // Move to step 2
             this.goToStep($card, 2);
         },
 
         /**
-         * Load CSV preview
+         * Handle mapping dropdown change
          */
-        loadPreview: function($card, uuid) {
+        handleMappingChange: function(e) {
+            const $select = $(e.currentTarget);
+            const $card = $select.closest('.importers-card');
+            const operationId = $card.data('operation-id');
+            
+            // Update the preview based on new mapping
+            this.updateMappedPreview($card, operationId);
+        },
+
+        /**
+         * Load CSV preview data and render based on mapping
+         */
+        loadPreview: function($card, uuid, operationId) {
             this.apiRequest(`preview/${uuid}`, null, 'GET').then(response => {
                 if (response.success && response.preview) {
-                    const preview = response.preview;
-                    const $table = $card.find('.importers-preview-table');
-                    const $thead = $table.find('thead');
-                    const $tbody = $table.find('tbody');
-
-                    // Build header
-                    let headerHtml = '<tr>';
-                    preview.headers.forEach(h => {
-                        headerHtml += `<th>${this.escapeHtml(h)}</th>`;
-                    });
-                    headerHtml += '</tr>';
-                    $thead.html(headerHtml);
-
-                    // Build rows
-                    let bodyHtml = '';
-                    preview.rows.forEach(row => {
-                        bodyHtml += '<tr>';
-                        row.forEach(cell => {
-                            bodyHtml += `<td>${this.escapeHtml(cell || '')}</td>`;
-                        });
-                        bodyHtml += '</tr>';
-                    });
-                    $tbody.html(bodyHtml);
+                    // Store raw preview data on the card
+                    $card.data('previewData', response.preview);
+                    
+                    // Render preview based on current mapping
+                    this.updateMappedPreview($card, operationId);
                 }
             });
+        },
+
+        /**
+         * Update preview table based on current field mapping
+         */
+        updateMappedPreview: function($card, operationId) {
+            const preview = $card.data('previewData');
+            const operation = operations[operationId];
+            
+            if (!preview || !operation) {
+                return;
+            }
+
+            const fields = operation.fields || {};
+            const fieldMap = this.getFieldMap($card);
+            const csvHeaders = preview.headers || [];
+            
+            const $table = $card.find('.importers-preview-table');
+            const $thead = $table.find('thead');
+            const $tbody = $table.find('tbody');
+
+            // Build header based on mapped fields
+            let headerHtml = '<tr>';
+            Object.entries(fields).forEach(([fieldKey, field]) => {
+                const label = field.label || fieldKey;
+                const mappedColumn = fieldMap[fieldKey];
+                const isMapped = !!mappedColumn;
+                const headerClass = isMapped ? '' : 'unmapped';
+                headerHtml += `<th class="${headerClass}">${this.escapeHtml(label)}${!isMapped ? ' <small>(unmapped)</small>' : ''}</th>`;
+            });
+            headerHtml += '</tr>';
+            $thead.html(headerHtml);
+
+            // Build rows based on mapping
+            let bodyHtml = '';
+            preview.rows.forEach(row => {
+                bodyHtml += '<tr>';
+                Object.entries(fields).forEach(([fieldKey, field]) => {
+                    const mappedColumn = fieldMap[fieldKey];
+                    let cellValue = '';
+                    
+                    if (mappedColumn) {
+                        // Find the column index for the mapped header
+                        const colIndex = csvHeaders.indexOf(mappedColumn);
+                        if (colIndex !== -1 && row[colIndex] !== undefined) {
+                            cellValue = row[colIndex];
+                        }
+                    }
+                    
+                    const cellClass = mappedColumn ? '' : 'unmapped';
+                    bodyHtml += `<td class="${cellClass}">${this.escapeHtml(cellValue || '')}</td>`;
+                });
+                bodyHtml += '</tr>';
+            });
+            $tbody.html(bodyHtml);
         },
 
         /**
