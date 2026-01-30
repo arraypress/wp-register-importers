@@ -160,13 +160,24 @@
     grid-template-columns: repeat(3, 1fr);
 }
 
-/* 4+ items: max 4 columns with auto-fill */
-.importers-operations-grid.has-4-items,
+/* 4 items: 4 columns */
+.importers-operations-grid.has-4-items {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* 5+ items: 4 columns max, items wrap */
 .importers-operations-grid.has-many-items {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
 }
 
 /* Responsive adjustments */
+@media screen and (max-width: 1400px) {
+    .importers-operations-grid.has-4-items,
+    .importers-operations-grid.has-many-items {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 @media screen and (max-width: 1200px) {
     .importers-operations-grid.has-3-items,
     .importers-operations-grid.has-4-items,
@@ -194,6 +205,13 @@
     border: 1px solid #c3c4c7;
     border-radius: 4px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Import cards need minimum height to keep footer at bottom */
+.importers-import-card {
+    min-height: 400px;
 }
 
 /* Card Header */
@@ -281,6 +299,9 @@
 /* Card Body */
 .importers-card-body {
     padding: 16px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Card Stats */
@@ -481,8 +502,12 @@
 }
 
 @keyframes importers-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* ==========================================================================
