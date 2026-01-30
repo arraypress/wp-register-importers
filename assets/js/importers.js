@@ -71,6 +71,9 @@
             $(document).on('click', '.importers-stat-error.has-errors', this.handleErrorsClick.bind(this));
             $(document).on('click', '.importers-errors-close', this.handleErrorsClose.bind(this));
             $(document).on('click', '.importers-errors-copy', this.handleErrorsCopy.bind(this));
+
+            // Log close button (for sync cards)
+            $(document).on('click', '.importers-log-close', this.handleLogClose.bind(this));
         },
 
         /**
@@ -151,6 +154,15 @@
             }).catch(err => {
                 console.error('Failed to copy:', err);
             });
+        },
+
+        /**
+         * Handle log close button (for sync cards)
+         */
+        handleLogClose: function(e) {
+            e.preventDefault();
+            const $log = $(e.currentTarget).closest('.importers-log');
+            $log.slideUp(200);
         },
 
         /**
@@ -712,8 +724,14 @@
                 }
             });
 
-            // Update buttons
-            $backButton.toggle(step > 1 && step < 4);
+            // Update buttons based on step
+            // Back button only shown on step 2 (mapping) - not during processing or completion
+            $backButton.toggle(step === 2);
+
+            // Reset next button icon to arrow (will be changed to update icon on step 4)
+            $nextButton.find('.dashicons')
+                .removeClass('dashicons-update')
+                .addClass('dashicons-arrow-right-alt');
 
             switch (step) {
                 case 1:
@@ -730,6 +748,10 @@
                     break;
                 case 4:
                     $nextButton.prop('disabled', false);
+                    $nextButton.find('.button-text').text(i18n.runAnother);
+                    $nextButton.find('.dashicons')
+                        .removeClass('dashicons-arrow-right-alt')
+                        .addClass('dashicons-update');
                     break;
             }
         },

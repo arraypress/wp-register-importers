@@ -184,6 +184,9 @@ trait OperationRenderer {
 			<div class="importers-log" style="display: none;">
 				<div class="importers-log-header">
 					<h4><?php esc_html_e( 'Activity Log', 'arraypress' ); ?></h4>
+					<button type="button" class="importers-log-close" title="<?php esc_attr_e( 'Close log', 'arraypress' ); ?>">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
 				</div>
 				<div class="importers-log-entries">
 					<div class="importers-log-placeholder"><?php esc_html_e( 'Waiting to start...', 'arraypress' ); ?></div>
