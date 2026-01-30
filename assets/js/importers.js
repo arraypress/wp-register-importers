@@ -1,0 +1,769 @@
+/**
+ * Importers Admin JavaScript
+ *
+ * @package ArrayPress\RegisterImporters
+ * @version 1.0.0
+ */
+
+(function($) {
+    'use strict';
+
+    // Ensure ImportersAdmin is available
+    if (typeof ImportersAdmin === 'undefined') {
+        console.error('ImportersAdmin not defined');
+        return;
+    }
+
+    const { ajaxUrl, restUrl, restNonce, pageId, operations, i18n } = ImportersAdmin;
+
+    /**
+     * Main Importers Controller
+     */
+    const Importers = {
+        /**
+         * Initialize
+         */
+        init: function() {
+            this.bindEvents();
+            this.initDropzones();
+        },
+
+        /**
+         * Bind event handlers
+         */
+        bindEvents: function() {
+            // Sync buttons
+            $(document).on('click', '.importers-sync-button', this.handleSyncClick.bind(this));
+
+            // Import flow
+            $(document).on('change', '.importers-file-input', this.handleFileSelect.bind(this));
+            $(document).on('click', '.importers-file-remove', this.handleFileRemove.bind(this));
+            $(document).on('click', '.importers-next-button', this.handleNextStep.bind(this));
+            $(document).on('click', '.importers-back-button', this.handleBackStep.bind(this));
+        },
+
+        /**
+         * Initialize dropzone interactions
+         */
+        initDropzones: function() {
+            $('.importers-dropzone').each(function() {
+                const $dropzone = $(this);
+
+                $dropzone
+                    .on('dragover dragenter', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $dropzone.addClass('is-dragover');
+                    })
+                    .on('dragleave dragend drop', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $dropzone.removeClass('is-dragover');
+                    });
+            });
+        },
+
+        /**
+         * Handle sync button click
+         */
+        handleSyncClick: function(e) {
+            e.preventDefault();
+
+            const $button = $(e.currentTarget);
+            const $card = $button.closest('.importers-card');
+            const operationId = $button.data('operation-id');
+
+            if ($button.hasClass('is-syncing')) {
+                return;
+            }
+
+            this.startSync($card, operationId);
+        },
+
+        /**
+         * Start sync operation
+         */
+        startSync: function($card, operationId) {
+            const $button = $card.find('.importers-sync-button');
+            const $progress = $card.find('.importers-progress-wrap');
+            const operation = operations[operationId];
+
+            // Update UI
+            $button.addClass('is-syncing').prop('disabled', true);
+            $button.find('.button-text').text(i18n.syncing);
+            $progress.show();
+
+            const startTime = Date.now();
+            let cursor = '';
+
+            // Start sync
+            this.apiRequest('sync/start', {
+                page_id: pageId,
+                operation_id: operationId
+            }).then(response => {
+                // Process batches
+                this.processSyncBatch($card, operationId, cursor, startTime);
+            }).catch(error => {
+                this.showError($card, error.message || i18n.errorOccurred);
+                this.resetSyncUI($card);
+            });
+        },
+
+        /**
+         * Process a sync batch
+         */
+        processSyncBatch: function($card, operationId, cursor, startTime) {
+            this.apiRequest('sync/batch', {
+                page_id: pageId,
+                operation_id: operationId,
+                cursor: cursor
+            }).then(response => {
+                // Update progress
+                this.updateProgress($card, response.percentage, response.total_processed, response.total_items);
+                this.updateLiveStats($card, response);
+
+                // Log activity
+                this.logActivity($card, `Processed ${response.processed} items (${response.created} created, ${response.updated} updated)`);
+
+                if (response.errors && response.errors.length > 0) {
+                    response.errors.forEach(err => {
+                        this.logActivity($card, `Error: ${err.item} - ${err.message}`, 'error');
+                    });
+                }
+
+                if (response.has_more) {
+                    // Continue with next batch
+                    this.processSyncBatch($card, operationId, response.cursor, startTime);
+                } else {
+                    // Complete
+                    const duration = Math.round((Date.now() - startTime) / 1000);
+                    this.completeOperation($card, operationId, 'sync', duration, response.stats);
+                }
+            }).catch(error => {
+                this.showError($card, error.message || i18n.errorOccurred);
+                this.resetSyncUI($card);
+            });
+        },
+
+        /**
+         * Handle file selection
+         */
+        handleFileSelect: function(e) {
+            const $input = $(e.target);
+            const $card = $input.closest('.importers-card');
+            const operationId = $card.data('operation-id');
+            const file = e.target.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            // Validate file type
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                alert(i18n.invalidFile);
+                $input.val('');
+                return;
+            }
+
+            // Upload file
+            this.uploadFile($card, operationId, file);
+        },
+
+        /**
+         * Upload file to server
+         */
+        uploadFile: function($card, operationId, file) {
+            const $dropzone = $card.find('.importers-dropzone');
+            const $fileInfo = $card.find('.importers-file-info');
+            const $nextButton = $card.find('.importers-next-button');
+
+            // Show loading state
+            $dropzone.addClass('is-loading');
+
+            // Create FormData
+            const formData = new FormData();
+            formData.append('import_file', file);
+
+            // Upload via REST API
+            fetch(`${restUrl}upload?page_id=${pageId}&operation_id=${operationId}`, {
+                method: 'POST',
+                headers: {
+                    'X-WP-Nonce': restNonce
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                $dropzone.removeClass('is-loading');
+
+                if (data.success) {
+                    // Store file data
+                    $card.data('file', data.file);
+
+                    // Update UI
+                    $dropzone.hide();
+                    $fileInfo.show();
+                    $fileInfo.find('.importers-file-name').text(data.file.original_name);
+                    $fileInfo.find('.importers-file-size').text(`${data.file.size_human} • ${data.file.rows} ${i18n.rowsDetected.replace('%d', data.file.rows)}`);
+
+                    // Enable next button
+                    $nextButton.prop('disabled', false);
+                } else {
+                    alert(data.message || i18n.uploadFailed);
+                }
+            })
+            .catch(error => {
+                $dropzone.removeClass('is-loading');
+                alert(i18n.uploadFailed);
+                console.error('Upload error:', error);
+            });
+        },
+
+        /**
+         * Handle file removal
+         */
+        handleFileRemove: function(e) {
+            e.preventDefault();
+
+            const $card = $(e.target).closest('.importers-card');
+            const $dropzone = $card.find('.importers-dropzone');
+            const $fileInfo = $card.find('.importers-file-info');
+            const $fileInput = $card.find('.importers-file-input');
+            const $nextButton = $card.find('.importers-next-button');
+
+            // Clear file data
+            $card.removeData('file');
+            $fileInput.val('');
+
+            // Reset UI
+            $fileInfo.hide();
+            $dropzone.show();
+            $nextButton.prop('disabled', true);
+        },
+
+        /**
+         * Handle next step in import wizard
+         */
+        handleNextStep: function(e) {
+            e.preventDefault();
+
+            const $button = $(e.currentTarget);
+            const $card = $button.closest('.importers-card');
+            const $activeStep = $card.find('.importers-step:visible');
+            const currentStep = parseInt($activeStep.data('step'), 10);
+            const operationId = $card.data('operation-id');
+
+            switch (currentStep) {
+                case 1:
+                    // Move to field mapping
+                    this.showFieldMapping($card, operationId);
+                    break;
+                case 2:
+                    // Start import
+                    this.startImport($card, operationId);
+                    break;
+                case 4:
+                    // Reset to start
+                    this.resetImportUI($card);
+                    break;
+            }
+        },
+
+        /**
+         * Handle back step in import wizard
+         */
+        handleBackStep: function(e) {
+            e.preventDefault();
+
+            const $button = $(e.currentTarget);
+            const $card = $button.closest('.importers-card');
+            const $activeStep = $card.find('.importers-step:visible');
+            const currentStep = parseInt($activeStep.data('step'), 10);
+
+            if (currentStep > 1) {
+                this.goToStep($card, currentStep - 1);
+            }
+        },
+
+        /**
+         * Show field mapping interface
+         */
+        showFieldMapping: function($card, operationId) {
+            const fileData = $card.data('file');
+            const operation = operations[operationId];
+
+            if (!fileData || !operation) {
+                return;
+            }
+
+            // Build mapping UI
+            const $mappingGrid = $card.find('.importers-mapping-grid');
+            $mappingGrid.empty();
+
+            const fields = operation.fields || {};
+            const csvHeaders = fileData.headers || [];
+
+            Object.entries(fields).forEach(([fieldKey, field]) => {
+                const isRequired = field.required;
+                const label = field.label || fieldKey;
+
+                // Try to auto-match by name
+                const autoMatch = csvHeaders.find(h => 
+                    h.toLowerCase() === fieldKey.toLowerCase() || 
+                    h.toLowerCase() === label.toLowerCase()
+                );
+
+                let selectOptions = `<option value="">${i18n.selectColumn}</option>`;
+                csvHeaders.forEach(header => {
+                    const selected = header === autoMatch ? ' selected' : '';
+                    selectOptions += `<option value="${this.escapeHtml(header)}"${selected}>${this.escapeHtml(header)}</option>`;
+                });
+
+                const rowHtml = `
+                    <div class="importers-mapping-row" data-field="${this.escapeHtml(fieldKey)}">
+                        <div class="importers-mapping-field">
+                            <span class="importers-mapping-field-label">${this.escapeHtml(label)}</span>
+                            ${isRequired ? `<span class="importers-mapping-required">*</span>` : ''}
+                        </div>
+                        <span class="importers-mapping-arrow dashicons dashicons-arrow-left-alt"></span>
+                        <select class="importers-mapping-select">${selectOptions}</select>
+                    </div>
+                `;
+
+                $mappingGrid.append(rowHtml);
+            });
+
+            // Load preview
+            this.loadPreview($card, fileData.uuid);
+
+            // Move to step 2
+            this.goToStep($card, 2);
+        },
+
+        /**
+         * Load CSV preview
+         */
+        loadPreview: function($card, uuid) {
+            this.apiRequest(`preview/${uuid}`, null, 'GET').then(response => {
+                if (response.success && response.preview) {
+                    const preview = response.preview;
+                    const $table = $card.find('.importers-preview-table');
+                    const $thead = $table.find('thead');
+                    const $tbody = $table.find('tbody');
+
+                    // Build header
+                    let headerHtml = '<tr>';
+                    preview.headers.forEach(h => {
+                        headerHtml += `<th>${this.escapeHtml(h)}</th>`;
+                    });
+                    headerHtml += '</tr>';
+                    $thead.html(headerHtml);
+
+                    // Build rows
+                    let bodyHtml = '';
+                    preview.rows.forEach(row => {
+                        bodyHtml += '<tr>';
+                        row.forEach(cell => {
+                            bodyHtml += `<td>${this.escapeHtml(cell || '')}</td>`;
+                        });
+                        bodyHtml += '</tr>';
+                    });
+                    $tbody.html(bodyHtml);
+                }
+            });
+        },
+
+        /**
+         * Start import operation
+         */
+        startImport: function($card, operationId) {
+            const fileData = $card.data('file');
+            const fieldMap = this.getFieldMap($card);
+
+            // Validate required fields
+            const operation = operations[operationId];
+            const fields = operation.fields || {};
+            const missingRequired = [];
+
+            Object.entries(fields).forEach(([key, field]) => {
+                if (field.required && !fieldMap[key]) {
+                    missingRequired.push(field.label || key);
+                }
+            });
+
+            if (missingRequired.length > 0) {
+                alert(`Please map the following required fields: ${missingRequired.join(', ')}`);
+                return;
+            }
+
+            // Move to progress step
+            this.goToStep($card, 3);
+
+            const startTime = Date.now();
+
+            // Initialize import
+            this.apiRequest('import/start', {
+                page_id: pageId,
+                operation_id: operationId,
+                file_uuid: fileData.uuid,
+                field_map: fieldMap
+            }).then(response => {
+                $card.data('totalItems', response.total_items);
+                this.processImportBatch($card, operationId, fileData.uuid, fieldMap, 0, startTime);
+            }).catch(error => {
+                this.showError($card, error.message || i18n.errorOccurred);
+            });
+        },
+
+        /**
+         * Process an import batch
+         */
+        processImportBatch: function($card, operationId, uuid, fieldMap, offset, startTime) {
+            this.apiRequest('import/batch', {
+                page_id: pageId,
+                operation_id: operationId,
+                file_uuid: uuid,
+                field_map: fieldMap,
+                offset: offset
+            }).then(response => {
+                // Update progress
+                this.updateProgress($card, response.percentage, response.total_processed, response.total_items);
+                this.updateLiveStats($card, response);
+
+                // Log activity
+                this.logActivity($card, `Batch ${response.batch}: ${response.processed} rows (${response.created} created, ${response.updated} updated, ${response.skipped} skipped)`);
+
+                if (response.errors && response.errors.length > 0) {
+                    response.errors.forEach(err => {
+                        this.logActivity($card, `Row ${err.row}: ${err.message}`, 'error');
+                    });
+                }
+
+                if (response.has_more) {
+                    // Continue with next batch
+                    this.processImportBatch($card, operationId, uuid, fieldMap, response.offset, startTime);
+                } else {
+                    // Complete
+                    const duration = Math.round((Date.now() - startTime) / 1000);
+                    this.completeOperation($card, operationId, 'import', duration, response.stats, uuid);
+                }
+            }).catch(error => {
+                this.showError($card, error.message || i18n.errorOccurred);
+            });
+        },
+
+        /**
+         * Get field mapping from UI
+         */
+        getFieldMap: function($card) {
+            const fieldMap = {};
+
+            $card.find('.importers-mapping-row').each(function() {
+                const $row = $(this);
+                const fieldKey = $row.data('field');
+                const csvColumn = $row.find('.importers-mapping-select').val();
+
+                if (csvColumn) {
+                    fieldMap[fieldKey] = csvColumn;
+                }
+            });
+
+            return fieldMap;
+        },
+
+        /**
+         * Complete operation
+         */
+        completeOperation: function($card, operationId, type, duration, stats, fileUuid = null) {
+            // Notify server
+            this.apiRequest('complete', {
+                page_id: pageId,
+                operation_id: operationId,
+                status: 'complete',
+                duration: duration,
+                file_uuid: fileUuid
+            });
+
+            if (type === 'sync') {
+                this.resetSyncUI($card);
+                this.updateSyncStats($card, stats);
+                this.logActivity($card, `${i18n.syncComplete} ${this.formatDuration(duration)}`, 'success');
+            } else {
+                // Show completion step
+                this.showImportComplete($card, stats, duration);
+            }
+        },
+
+        /**
+         * Show import completion summary
+         */
+        showImportComplete: function($card, stats, duration) {
+            const $completeStats = $card.find('.importers-complete-stats');
+            const $completeErrors = $card.find('.importers-complete-errors');
+
+            // Build stats
+            $completeStats.html(`
+                <div class="importers-stat importers-stat-success">
+                    <span class="importers-stat-value">${stats.created}</span>
+                    <span class="importers-stat-label">${i18n.created}</span>
+                </div>
+                <div class="importers-stat">
+                    <span class="importers-stat-value">${stats.updated}</span>
+                    <span class="importers-stat-label">${i18n.updated}</span>
+                </div>
+                <div class="importers-stat">
+                    <span class="importers-stat-value">${stats.skipped}</span>
+                    <span class="importers-stat-label">${i18n.skipped}</span>
+                </div>
+                <div class="importers-stat importers-stat-error">
+                    <span class="importers-stat-value">${stats.failed}</span>
+                    <span class="importers-stat-label">${i18n.failed}</span>
+                </div>
+            `);
+
+            // Show errors if any
+            if (stats.errors && stats.errors.length > 0) {
+                const $tbody = $completeErrors.find('tbody');
+                $tbody.empty();
+
+                stats.errors.forEach(err => {
+                    $tbody.append(`
+                        <tr>
+                            <td>${err.row || '-'}</td>
+                            <td>${this.escapeHtml(err.item || '')}</td>
+                            <td>${this.escapeHtml(err.message)}</td>
+                        </tr>
+                    `);
+                });
+
+                $completeErrors.show();
+            } else {
+                $completeErrors.hide();
+            }
+
+            // Update button
+            const $nextButton = $card.find('.importers-next-button');
+            $nextButton.find('.button-text').text(i18n.runAnother);
+            $nextButton.find('.dashicons').removeClass('dashicons-arrow-right-alt').addClass('dashicons-update');
+
+            this.goToStep($card, 4);
+        },
+
+        /**
+         * Go to specific step
+         */
+        goToStep: function($card, step) {
+            const $steps = $card.find('.importers-step');
+            const $dots = $card.find('.importers-step-dot');
+            const $backButton = $card.find('.importers-back-button');
+            const $nextButton = $card.find('.importers-next-button');
+
+            // Hide all steps, show target
+            $steps.hide();
+            $card.find(`.importers-step[data-step="${step}"]`).show();
+
+            // Update dots
+            $dots.removeClass('active completed');
+            $dots.each(function() {
+                const dotStep = parseInt($(this).data('step'), 10);
+                if (dotStep < step) {
+                    $(this).addClass('completed');
+                } else if (dotStep === step) {
+                    $(this).addClass('active');
+                }
+            });
+
+            // Update buttons
+            $backButton.toggle(step > 1 && step < 4);
+
+            switch (step) {
+                case 1:
+                    $nextButton.prop('disabled', !$card.data('file'));
+                    $nextButton.find('.button-text').text(i18n.continueToMap);
+                    break;
+                case 2:
+                    $nextButton.prop('disabled', false);
+                    $nextButton.find('.button-text').text(i18n.startImport);
+                    break;
+                case 3:
+                    $nextButton.prop('disabled', true);
+                    $nextButton.find('.button-text').text(i18n.importing);
+                    break;
+                case 4:
+                    $nextButton.prop('disabled', false);
+                    break;
+            }
+        },
+
+        /**
+         * Update progress bar
+         */
+        updateProgress: function($card, percentage, processed, total) {
+            const $fill = $card.find('.importers-progress-fill');
+            const $status = $card.find('.importers-progress-status');
+            const $percent = $card.find('.importers-progress-percent');
+
+            $fill.css('width', `${percentage}%`);
+            $status.text(`${processed} / ${total}`);
+            $percent.text(`${percentage}%`);
+        },
+
+        /**
+         * Update live stats display
+         */
+        updateLiveStats: function($card, data) {
+            $card.find('.importers-stat-created').text(data.stats?.created || 0);
+            $card.find('.importers-stat-updated').text(data.stats?.updated || 0);
+            $card.find('.importers-stat-skipped').text(data.stats?.skipped || 0);
+            $card.find('.importers-stat-failed').text(data.stats?.failed || 0);
+        },
+
+        /**
+         * Update sync card stats
+         */
+        updateSyncStats: function($card, stats) {
+            $card.find('.importers-stat-value').eq(0).text(stats.total);
+            $card.find('.importers-stat-value').eq(1).text(stats.created + stats.updated);
+            $card.find('.importers-stat-value').eq(2).text(stats.failed);
+            $card.find('.importers-last-run').text(`${i18n.lastSync}: ${i18n.justNow}`);
+        },
+
+        /**
+         * Log activity message
+         */
+        logActivity: function($card, message, type = 'info') {
+            const $log = $card.find('.importers-log-entries');
+            const time = new Date().toLocaleTimeString();
+
+            const entryClass = type === 'error' ? 'is-error' : (type === 'success' ? 'is-success' : '');
+
+            $log.append(`
+                <div class="importers-log-entry ${entryClass}">
+                    <span class="importers-log-time">[${time}]</span>
+                    <span class="importers-log-message">${this.escapeHtml(message)}</span>
+                </div>
+            `);
+
+            // Scroll to bottom
+            $log.scrollTop($log[0].scrollHeight);
+        },
+
+        /**
+         * Reset sync UI to initial state
+         */
+        resetSyncUI: function($card) {
+            const $button = $card.find('.importers-sync-button');
+            const $progress = $card.find('.importers-progress-wrap');
+
+            $button.removeClass('is-syncing').prop('disabled', false);
+            $button.find('.button-text').text(i18n.syncNow);
+            $progress.hide();
+
+            // Reset progress bar
+            $card.find('.importers-progress-fill').css('width', '0');
+            $card.find('.importers-progress-status').text('');
+            $card.find('.importers-progress-percent').text('0%');
+        },
+
+        /**
+         * Reset import UI to initial state
+         */
+        resetImportUI: function($card) {
+            // Clear file data
+            $card.removeData('file');
+            $card.removeData('totalItems');
+            $card.find('.importers-file-input').val('');
+
+            // Reset dropzone
+            $card.find('.importers-dropzone').show();
+            $card.find('.importers-file-info').hide();
+
+            // Clear mapping
+            $card.find('.importers-mapping-grid').empty();
+            $card.find('.importers-preview-table thead, .importers-preview-table tbody').empty();
+
+            // Clear log
+            $card.find('.importers-log-entries').empty();
+
+            // Reset progress
+            $card.find('.importers-progress-fill').css('width', '0');
+
+            // Reset button
+            const $nextButton = $card.find('.importers-next-button');
+            $nextButton.find('.button-text').text(i18n.continueToMap);
+            $nextButton.find('.dashicons').removeClass('dashicons-update').addClass('dashicons-arrow-right-alt');
+            $nextButton.prop('disabled', true);
+
+            // Go to step 1
+            this.goToStep($card, 1);
+        },
+
+        /**
+         * Show error message
+         */
+        showError: function($card, message) {
+            this.logActivity($card, message, 'error');
+            // Could also show a notice/toast here
+        },
+
+        /**
+         * Make API request
+         */
+        apiRequest: function(endpoint, data = null, method = 'POST') {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': restNonce
+                }
+            };
+
+            if (data && method !== 'GET') {
+                options.body = JSON.stringify(data);
+            }
+
+            let url = restUrl + endpoint;
+            if (data && method === 'GET') {
+                const params = new URLSearchParams(data);
+                url += '?' + params.toString();
+            }
+
+            return fetch(url, options)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code && data.message) {
+                        throw new Error(data.message);
+                    }
+                    return data;
+                });
+        },
+
+        /**
+         * Format duration for display
+         */
+        formatDuration: function(seconds) {
+            if (seconds < 60) {
+                return `${seconds}s`;
+            }
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}m ${secs}s`;
+        },
+
+        /**
+         * Escape HTML entities
+         */
+        escapeHtml: function(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    };
+
+    // Initialize when DOM is ready
+    $(document).ready(function() {
+        Importers.init();
+    });
+
+})(jQuery);

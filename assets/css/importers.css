@@ -1,0 +1,806 @@
+/**
+ * Importers Admin Styles
+ *
+ * @package ArrayPress\RegisterImporters
+ * @version 1.0.0
+ */
+
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
+
+:root {
+    /* Colors */
+    --importers-primary: #2271b1;
+    --importers-primary-hover: #135e96;
+    --importers-success: #00a32a;
+    --importers-success-bg: #edfaef;
+    --importers-warning: #dba617;
+    --importers-warning-bg: #fcf9e8;
+    --importers-error: #d63638;
+    --importers-error-bg: #fcf0f1;
+    --importers-info: #72aee6;
+    --importers-info-bg: #f0f6fc;
+
+    /* Neutrals */
+    --importers-text: #1d2327;
+    --importers-text-light: #50575e;
+    --importers-text-muted: #787c82;
+    --importers-border: #c3c4c7;
+    --importers-border-light: #dcdcde;
+    --importers-bg: #f0f0f1;
+    --importers-bg-white: #ffffff;
+
+    /* Spacing */
+    --importers-spacing-xs: 4px;
+    --importers-spacing-sm: 8px;
+    --importers-spacing-md: 16px;
+    --importers-spacing-lg: 24px;
+    --importers-spacing-xl: 32px;
+
+    /* Border radius */
+    --importers-radius-sm: 4px;
+    --importers-radius-md: 6px;
+    --importers-radius-lg: 8px;
+
+    /* Shadows */
+    --importers-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --importers-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --importers-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Base Layout
+   ========================================================================== */
+
+.importers-wrap {
+    max-width: 1400px;
+    margin: 20px 20px 20px 0;
+}
+
+.importers-wrap * {
+    box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.importers-header {
+    background: var(--importers-bg-white);
+    border: 1px solid var(--importers-border-light);
+    border-radius: var(--importers-radius-lg);
+    margin-bottom: var(--importers-spacing-lg);
+    overflow: hidden;
+}
+
+.importers-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--importers-spacing-lg);
+    border-bottom: 1px solid var(--importers-border-light);
+}
+
+.importers-header-branding {
+    display: flex;
+    align-items: center;
+    gap: var(--importers-spacing-md);
+}
+
+.importers-header-logo {
+    max-height: 40px;
+    width: auto;
+}
+
+.importers-header-title {
+    font-size: 23px;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+    color: var(--importers-text);
+}
+
+.importers-header-tabs {
+    padding: 0 var(--importers-spacing-lg);
+}
+
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
+
+.importers-tabs-nav {
+    display: flex;
+    gap: var(--importers-spacing-xs);
+    margin: 0;
+    padding: 0;
+}
+
+.importers-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--importers-spacing-sm);
+    padding: var(--importers-spacing-md) var(--importers-spacing-lg);
+    color: var(--importers-text-light);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s ease;
+}
+
+.importers-tab:hover {
+    color: var(--importers-primary);
+    background: var(--importers-info-bg);
+}
+
+.importers-tab-active {
+    color: var(--importers-primary);
+    border-bottom-color: var(--importers-primary);
+}
+
+.importers-tab .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* ==========================================================================
+   Content Area
+   ========================================================================== */
+
+.importers-content {
+    min-height: 400px;
+}
+
+.importers-notices {
+    margin-bottom: var(--importers-spacing-md);
+}
+
+/* ==========================================================================
+   Operations Grid
+   ========================================================================== */
+
+.importers-operations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: var(--importers-spacing-lg);
+}
+
+/* ==========================================================================
+   Card Base Styles
+   ========================================================================== */
+
+.importers-card {
+    background: var(--importers-bg-white);
+    border: 1px solid var(--importers-border-light);
+    border-radius: var(--importers-radius-lg);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.importers-card:hover {
+    box-shadow: var(--importers-shadow-md);
+}
+
+/* Card Header */
+.importers-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--importers-spacing-md);
+    padding: var(--importers-spacing-lg);
+    border-bottom: 1px solid var(--importers-border-light);
+}
+
+.importers-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--importers-info-bg);
+    border-radius: var(--importers-radius-md);
+    flex-shrink: 0;
+}
+
+.importers-card-icon .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: var(--importers-primary);
+}
+
+.importers-card-title-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+.importers-card-title {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--importers-text);
+}
+
+.importers-card-description {
+    margin: 0;
+    font-size: 13px;
+    color: var(--importers-text-muted);
+}
+
+/* Card Status */
+.importers-card-status {
+    flex-shrink: 0;
+}
+
+.importers-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 12px;
+}
+
+.importers-status-idle {
+    background: var(--importers-bg);
+    color: var(--importers-text-muted);
+}
+
+.importers-status-running {
+    background: var(--importers-info-bg);
+    color: var(--importers-primary);
+}
+
+.importers-status-success {
+    background: var(--importers-success-bg);
+    color: var(--importers-success);
+}
+
+.importers-status-error {
+    background: var(--importers-error-bg);
+    color: var(--importers-error);
+}
+
+/* Card Body */
+.importers-card-body {
+    padding: var(--importers-spacing-lg);
+}
+
+/* Card Stats */
+.importers-card-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--importers-spacing-md) var(--importers-spacing-lg);
+    background: var(--importers-bg);
+}
+
+.importers-stat {
+    text-align: center;
+}
+
+.importers-stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--importers-text);
+    line-height: 1.2;
+}
+
+.importers-stat-label {
+    display: block;
+    font-size: 12px;
+    color: var(--importers-text-muted);
+    margin-top: 2px;
+}
+
+.importers-stat-success .importers-stat-value {
+    color: var(--importers-success);
+}
+
+.importers-stat-error .importers-stat-value {
+    color: var(--importers-error);
+}
+
+/* Card Footer */
+.importers-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--importers-spacing-md) var(--importers-spacing-lg);
+    border-top: 1px solid var(--importers-border-light);
+    background: var(--importers-bg);
+}
+
+.importers-card-meta {
+    font-size: 12px;
+    color: var(--importers-text-muted);
+}
+
+.importers-card-actions {
+    display: flex;
+    gap: var(--importers-spacing-sm);
+}
+
+.importers-card-history {
+    padding: var(--importers-spacing-sm) var(--importers-spacing-lg);
+    background: var(--importers-bg);
+    border-top: 1px solid var(--importers-border-light);
+    font-size: 12px;
+    color: var(--importers-text-muted);
+}
+
+/* ==========================================================================
+   Sync Button
+   ========================================================================== */
+
+.importers-sync-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--importers-spacing-xs);
+}
+
+.importers-sync-button .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.importers-sync-button.is-syncing .dashicons {
+    animation: importers-spin 1s linear infinite;
+}
+
+@keyframes importers-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   Progress Bar
+   ========================================================================== */
+
+.importers-progress-wrap {
+    margin: var(--importers-spacing-md) 0;
+}
+
+.importers-progress-bar {
+    height: 8px;
+    background: var(--importers-border-light);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.importers-progress-fill {
+    height: 100%;
+    background: var(--importers-primary);
+    border-radius: 4px;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.importers-progress-text {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--importers-spacing-sm);
+    font-size: 13px;
+    color: var(--importers-text-muted);
+}
+
+.importers-progress-percent {
+    font-weight: 600;
+    color: var(--importers-primary);
+}
+
+/* ==========================================================================
+   File Upload / Dropzone
+   ========================================================================== */
+
+.importers-dropzone {
+    position: relative;
+    border: 2px dashed var(--importers-border);
+    border-radius: var(--importers-radius-md);
+    padding: var(--importers-spacing-xl);
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.importers-dropzone:hover,
+.importers-dropzone.is-dragover {
+    border-color: var(--importers-primary);
+    background: var(--importers-info-bg);
+}
+
+.importers-file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.importers-dropzone-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--importers-spacing-sm);
+    pointer-events: none;
+}
+
+.importers-dropzone-label .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: var(--importers-text-muted);
+}
+
+.importers-dropzone-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--importers-text);
+}
+
+.importers-dropzone-hint {
+    font-size: 12px;
+    color: var(--importers-text-muted);
+}
+
+/* File Info */
+.importers-file-info {
+    margin-top: var(--importers-spacing-md);
+}
+
+.importers-file-details {
+    display: flex;
+    align-items: center;
+    gap: var(--importers-spacing-md);
+    padding: var(--importers-spacing-md);
+    background: var(--importers-success-bg);
+    border: 1px solid var(--importers-success);
+    border-radius: var(--importers-radius-md);
+}
+
+.importers-file-details .dashicons {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--importers-success);
+}
+
+.importers-file-meta {
+    flex: 1;
+}
+
+.importers-file-name {
+    display: block;
+    font-weight: 500;
+    color: var(--importers-text);
+}
+
+.importers-file-size {
+    display: block;
+    font-size: 12px;
+    color: var(--importers-text-muted);
+}
+
+.importers-file-remove {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--importers-text-muted);
+    border-radius: var(--importers-radius-sm);
+}
+
+.importers-file-remove:hover {
+    background: var(--importers-error-bg);
+    color: var(--importers-error);
+}
+
+/* ==========================================================================
+   Field Mapping
+   ========================================================================== */
+
+.importers-mapping-grid {
+    display: grid;
+    gap: var(--importers-spacing-md);
+}
+
+.importers-mapping-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--importers-spacing-md);
+    padding: var(--importers-spacing-md);
+    background: var(--importers-bg);
+    border-radius: var(--importers-radius-md);
+}
+
+.importers-mapping-field {
+    display: flex;
+    align-items: center;
+    gap: var(--importers-spacing-sm);
+}
+
+.importers-mapping-field-label {
+    font-weight: 500;
+}
+
+.importers-mapping-required {
+    color: var(--importers-error);
+    font-size: 12px;
+}
+
+.importers-mapping-arrow {
+    color: var(--importers-text-muted);
+}
+
+.importers-mapping-select {
+    width: 100%;
+}
+
+/* Preview Table */
+.importers-preview-section {
+    margin-top: var(--importers-spacing-lg);
+}
+
+.importers-preview-section h4 {
+    margin: 0 0 var(--importers-spacing-md);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.importers-preview-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--importers-border-light);
+    border-radius: var(--importers-radius-md);
+}
+
+.importers-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.importers-preview-table th,
+.importers-preview-table td {
+    padding: var(--importers-spacing-sm) var(--importers-spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--importers-border-light);
+}
+
+.importers-preview-table th {
+    background: var(--importers-bg);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.importers-preview-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* ==========================================================================
+   Live Stats
+   ========================================================================== */
+
+.importers-live-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--importers-spacing-lg);
+    background: var(--importers-bg);
+    border-radius: var(--importers-radius-md);
+    margin: var(--importers-spacing-md) 0;
+}
+
+/* ==========================================================================
+   Activity Log
+   ========================================================================== */
+
+.importers-log {
+    margin-top: var(--importers-spacing-lg);
+}
+
+.importers-log h4 {
+    margin: 0 0 var(--importers-spacing-md);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.importers-log-entries {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: var(--importers-spacing-md);
+    background: #1d2327;
+    border-radius: var(--importers-radius-md);
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #e0e0e0;
+}
+
+.importers-log-entry {
+    display: flex;
+    gap: var(--importers-spacing-sm);
+}
+
+.importers-log-time {
+    color: #72aee6;
+    flex-shrink: 0;
+}
+
+.importers-log-message {
+    flex: 1;
+}
+
+.importers-log-entry.is-error .importers-log-message {
+    color: #f86368;
+}
+
+.importers-log-entry.is-success .importers-log-message {
+    color: #68de7c;
+}
+
+/* ==========================================================================
+   Complete Summary
+   ========================================================================== */
+
+.importers-complete-summary {
+    text-align: center;
+    padding: var(--importers-spacing-xl);
+}
+
+.importers-complete-icon {
+    margin-bottom: var(--importers-spacing-md);
+}
+
+.importers-complete-icon .dashicons {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--importers-success);
+}
+
+.importers-complete-title {
+    margin: 0 0 var(--importers-spacing-lg);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--importers-text);
+}
+
+.importers-complete-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--importers-spacing-xl);
+    margin-bottom: var(--importers-spacing-lg);
+}
+
+.importers-complete-errors {
+    margin-top: var(--importers-spacing-lg);
+    text-align: left;
+}
+
+.importers-complete-errors h4 {
+    margin: 0 0 var(--importers-spacing-md);
+    color: var(--importers-error);
+}
+
+.importers-errors-table-wrap {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--importers-error);
+    border-radius: var(--importers-radius-md);
+}
+
+.importers-errors-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.importers-errors-table th,
+.importers-errors-table td {
+    padding: var(--importers-spacing-sm) var(--importers-spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--importers-border-light);
+}
+
+.importers-errors-table th {
+    background: var(--importers-error-bg);
+}
+
+/* ==========================================================================
+   Step Indicator
+   ========================================================================== */
+
+.importers-step-indicator {
+    display: flex;
+    gap: var(--importers-spacing-sm);
+}
+
+.importers-step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--importers-border);
+    transition: all 0.2s ease;
+}
+
+.importers-step-dot.active {
+    background: var(--importers-primary);
+    transform: scale(1.2);
+}
+
+.importers-step-dot.completed {
+    background: var(--importers-success);
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.importers-empty-state {
+    text-align: center;
+    padding: var(--importers-spacing-xl) * 2;
+    background: var(--importers-bg-white);
+    border: 1px solid var(--importers-border-light);
+    border-radius: var(--importers-radius-lg);
+}
+
+.importers-empty-state .dashicons {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--importers-text-muted);
+    margin-bottom: var(--importers-spacing-md);
+}
+
+.importers-empty-state h3 {
+    margin: 0 0 var(--importers-spacing-sm);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.importers-empty-state p {
+    margin: 0;
+    color: var(--importers-text-muted);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+    .importers-wrap {
+        margin: 10px;
+    }
+
+    .importers-operations-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .importers-card-stats,
+    .importers-live-stats,
+    .importers-complete-stats {
+        flex-wrap: wrap;
+        gap: var(--importers-spacing-md);
+    }
+
+    .importers-stat {
+        min-width: 80px;
+    }
+
+    .importers-mapping-row {
+        grid-template-columns: 1fr;
+    }
+
+    .importers-mapping-arrow {
+        transform: rotate(90deg);
+    }
+}

@@ -1,0 +1,48 @@
+{
+  "name": "arraypress/wp-register-importers",
+  "version": "1.0.0",
+  "description": "WordPress library for registering import and sync operations with batch processing, field mapping, and progress tracking.",
+  "homepage": "https://github.com/arraypress/wp-register-importers/",
+  "type": "library",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "David Sherlock",
+      "homepage": "https://arraypress.com/"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "arraypress/wp-composer-assets": "dev-main"
+  },
+  "autoload": {
+    "psr-4": {
+      "ArrayPress\\RegisterImporters\\": "src/"
+    },
+    "files": [
+      "src/Utilities/Functions.php"
+    ]
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true,
+    "preferred-install": "dist"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "support": {
+    "issues": "https://github.com/arraypress/wp-register-importers/issues",
+    "source": "https://github.com/arraypress/wp-register-importers"
+  },
+  "keywords": [
+    "wordpress",
+    "importers",
+    "sync",
+    "csv",
+    "batch-processing",
+    "data-import",
+    "api-sync",
+    "admin",
+    "migration"
+  ]
+}
