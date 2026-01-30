@@ -330,6 +330,30 @@
     color: #d63638;
 }
 
+.importers-errors-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.importers-errors-copy {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+}
+
+.importers-errors-copy .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 1;
+}
+
+.importers-errors-copy.copied {
+    color: #00a32a;
+    border-color: #00a32a;
+}
+
 .importers-errors-close {
     background: none;
     border: none;
@@ -409,7 +433,7 @@
 .importers-sync-button,
 .importers-next-button,
 .importers-back-button {
-    display: inline-flex;
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -930,11 +954,6 @@
 .importers-empty-state p {
     margin: 0;
     color: #646970;
-}
-
-.importers-sync-button {
-    display: flex;
-    align-content: center;
 }
 
 /* ==========================================================================

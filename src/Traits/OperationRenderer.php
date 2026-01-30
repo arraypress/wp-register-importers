@@ -138,9 +138,15 @@ trait OperationRenderer {
 			<div class="importers-errors-panel" style="display: none;">
 				<div class="importers-errors-panel-header">
 					<h4><?php esc_html_e( 'Recent Errors', 'arraypress' ); ?></h4>
-					<button type="button" class="importers-errors-close">
-						<span class="dashicons dashicons-no-alt"></span>
-					</button>
+					<div class="importers-errors-actions">
+						<button type="button" class="button button-small importers-errors-copy" title="<?php esc_attr_e( 'Copy all errors', 'arraypress' ); ?>">
+							<span class="dashicons dashicons-clipboard"></span>
+							<span class="button-text"><?php esc_html_e( 'Copy', 'arraypress' ); ?></span>
+						</button>
+						<button type="button" class="importers-errors-close" title="<?php esc_attr_e( 'Close', 'arraypress' ); ?>">
+							<span class="dashicons dashicons-no-alt"></span>
+						</button>
+					</div>
 				</div>
 				<div class="importers-errors-table-wrap">
 					<table class="importers-errors-table">
@@ -451,12 +457,17 @@ trait OperationRenderer {
 	 * @return string
 	 */
 	protected function get_status_class( ?string $status ): string {
-		return match ( $status ) {
-			'running' => 'importers-status-running',
-			'complete' => 'importers-status-success',
-			'error', 'cancelled' => 'importers-status-error',
-			default => 'importers-status-idle',
-		};
+		switch ( $status ) {
+			case 'running':
+				return 'importers-status-running';
+			case 'complete':
+				return 'importers-status-success';
+			case 'error':
+			case 'cancelled':
+				return 'importers-status-error';
+			default:
+				return 'importers-status-idle';
+		}
 	}
 
 	/**
@@ -467,13 +478,18 @@ trait OperationRenderer {
 	 * @return string
 	 */
 	protected function get_status_label( ?string $status ): string {
-		return match ( $status ) {
-			'running' => __( 'Running', 'arraypress' ),
-			'complete' => __( 'Complete', 'arraypress' ),
-			'error' => __( 'Error', 'arraypress' ),
-			'cancelled' => __( 'Cancelled', 'arraypress' ),
-			default => __( 'Ready', 'arraypress' ),
-		};
+		switch ( $status ) {
+			case 'running':
+				return __( 'Running', 'arraypress' );
+			case 'complete':
+				return __( 'Complete', 'arraypress' );
+			case 'error':
+				return __( 'Error', 'arraypress' );
+			case 'cancelled':
+				return __( 'Cancelled', 'arraypress' );
+			default:
+				return __( 'Ready', 'arraypress' );
+		}
 	}
 
 }

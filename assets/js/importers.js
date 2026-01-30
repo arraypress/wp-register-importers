@@ -70,6 +70,7 @@
             // Errors panel
             $(document).on('click', '.importers-stat-error.has-errors', this.handleErrorsClick.bind(this));
             $(document).on('click', '.importers-errors-close', this.handleErrorsClose.bind(this));
+            $(document).on('click', '.importers-errors-copy', this.handleErrorsCopy.bind(this));
         },
 
         /**
@@ -113,6 +114,43 @@
             e.preventDefault();
             const $panel = $(e.currentTarget).closest('.importers-errors-panel');
             $panel.slideUp(200);
+        },
+
+        /**
+         * Handle copy errors button
+         */
+        handleErrorsCopy: function(e) {
+            e.preventDefault();
+            const $button = $(e.currentTarget);
+            const $panel = $button.closest('.importers-errors-panel');
+            const $table = $panel.find('.importers-errors-table');
+            
+            // Build text from table rows
+            let text = 'Item\tError\n';
+            text += '----\t-----\n';
+            
+            $table.find('tbody tr').each(function() {
+                const $cells = $(this).find('td');
+                const item = $cells.eq(0).text().trim();
+                const error = $cells.eq(1).text().trim();
+                text += `${item}\t${error}\n`;
+            });
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                // Show feedback
+                const $text = $button.find('.button-text');
+                const originalText = $text.text();
+                $button.addClass('copied');
+                $text.text(i18n.logCopied || 'Copied!');
+                
+                setTimeout(() => {
+                    $button.removeClass('copied');
+                    $text.text(originalText);
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
         },
 
         /**
@@ -193,9 +231,23 @@
                 this.updateProgress($card, response.percentage, response.total_processed, response.total_items);
                 this.updateSyncLiveStats($card, response);
 
-                // Log batch progress
-                const batchMsg = `Batch ${batchNum}: Processed ${response.processed} ${response.processed === 1 ? singular : plural} (${response.created} created, ${response.updated} updated)`;
-                this.logActivity($card, batchMsg, 'info');
+                // Log batch progress with all counts
+                const created = response.created || 0;
+                const updated = response.updated || 0;
+                const skipped = response.skipped || 0;
+                const failed = response.failed || 0;
+                
+                let batchMsg = `Batch ${batchNum}: ${response.processed} ${response.processed === 1 ? singular : plural}`;
+                let details = [];
+                if (created > 0) details.push(`${created} created`);
+                if (updated > 0) details.push(`${updated} updated`);
+                if (skipped > 0) details.push(`${skipped} skipped`);
+                if (failed > 0) details.push(`${failed} failed`);
+                if (details.length > 0) {
+                    batchMsg += ` (${details.join(', ')})`;
+                }
+                
+                this.logActivity($card, batchMsg, failed > 0 ? 'warning' : 'info');
 
                 // Log any errors from this batch
                 if (response.errors && response.errors.length > 0) {
@@ -210,12 +262,12 @@
                 } else {
                     // Complete
                     const duration = Math.round((Date.now() - startTime) / 1000);
-                    const hasErrors = (response.stats?.failed || 0) > 0;
+                    const totalFailed = response.stats?.failed || 0;
                     
                     this.logActivity($card, `Sync complete! ${response.total_processed} ${plural} processed in ${this.formatDuration(duration)}`, 'success');
                     
-                    if (hasErrors) {
-                        this.logActivity($card, `${response.stats.failed} ${plural} had errors`, 'warning');
+                    if (totalFailed > 0) {
+                        this.logActivity($card, `${totalFailed} ${totalFailed === 1 ? singular : plural} had errors`, 'warning');
                     }
                     
                     this.completeOperation($card, operationId, 'sync', duration, response.stats);

@@ -106,8 +106,9 @@ class StatsManager {
 		$stats = self::get_stats( $page_id, $operation_id );
 
 		// Reset current run stats
+		// Note: We don't set last_status to 'running' here - it will be set on completion
+		// This prevents "stuck" running status if browser closes or JS errors
 		$stats['last_run']     = current_time( 'mysql', true );
-		$stats['last_status']  = 'running';
 		$stats['duration']     = 0;
 		$stats['total']        = $total ?? 0;
 		$stats['created']      = 0;
