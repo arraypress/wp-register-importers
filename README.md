@@ -1,6 +1,7 @@
 # WordPress Register Importers
 
-A WordPress library for registering import and sync operations with batch processing, field mapping, and progress tracking. Create professional data management interfaces with minimal code.
+A WordPress library for registering import and sync operations with batch processing, field mapping, and progress
+tracking. Create professional data management interfaces with minimal code.
 
 ## Features
 
@@ -84,19 +85,19 @@ add_action( 'admin_menu', function() {
 
 ### Page Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `page_title` | string | 'Import & Sync' | Page title shown in browser |
-| `menu_title` | string | 'Import & Sync' | Menu item text |
-| `menu_slug` | string | (id) | URL slug for the page |
-| `capability` | string | 'manage_options' | Required capability |
-| `parent_slug` | string | '' | Parent menu slug (for submenu) |
-| `icon` | string | 'dashicons-database-import' | Menu icon (top-level only) |
-| `position` | int | null | Menu position |
-| `logo` | string | '' | URL to header logo image |
-| `header_title` | string | (page_title) | Custom header title |
-| `show_title` | bool | true | Show page title |
-| `show_tabs` | bool | true | Show tab navigation |
+| Option         | Type   | Default                     | Description                    |
+|----------------|--------|-----------------------------|--------------------------------|
+| `page_title`   | string | 'Import & Sync'             | Page title shown in browser    |
+| `menu_title`   | string | 'Import & Sync'             | Menu item text                 |
+| `menu_slug`    | string | (id)                        | URL slug for the page          |
+| `capability`   | string | 'manage_options'            | Required capability            |
+| `parent_slug`  | string | ''                          | Parent menu slug (for submenu) |
+| `icon`         | string | 'dashicons-database-import' | Menu icon (top-level only)     |
+| `position`     | int    | null                        | Menu position                  |
+| `logo`         | string | ''                          | URL to header logo image       |
+| `header_title` | string | (page_title)                | Custom header title            |
+| `show_title`   | bool   | true                        | Show page title                |
+| `show_tabs`    | bool   | true                        | Show tab navigation            |
 
 ### Tab Options
 
@@ -122,37 +123,37 @@ Customize the default tabs or create your own:
 
 ### Sync Operation Options
 
-| Option | Type | Required | Description |
-|--------|------|----------|-------------|
-| `type` | string | Yes | Must be `'sync'` |
-| `title` | string | Yes | Display title |
-| `description` | string | No | Short description |
-| `tab` | string | No | Tab to display in (default: `'syncs'`) |
-| `icon` | string | No | Dashicon class (e.g., `'dashicons-cloud'`) |
-| `singular` | string | No | Singular item name (default: `'item'`) |
-| `plural` | string | No | Plural item name (default: `'items'`) |
-| `batch_size` | int | No | Items per batch (default: `100`) |
-| `data_callback` | callable | Yes | Function to fetch data from API |
-| `process_callback` | callable | Yes | Function to process each item |
+| Option             | Type     | Required | Description                                |
+|--------------------|----------|----------|--------------------------------------------|
+| `type`             | string   | Yes      | Must be `'sync'`                           |
+| `title`            | string   | Yes      | Display title                              |
+| `description`      | string   | No       | Short description                          |
+| `tab`              | string   | No       | Tab to display in (default: `'syncs'`)     |
+| `icon`             | string   | No       | Dashicon class (e.g., `'dashicons-cloud'`) |
+| `singular`         | string   | No       | Singular item name (default: `'item'`)     |
+| `plural`           | string   | No       | Plural item name (default: `'items'`)      |
+| `batch_size`       | int      | No       | Items per batch (default: `100`)           |
+| `data_callback`    | callable | Yes      | Function to fetch data from API            |
+| `process_callback` | callable | Yes      | Function to process each item              |
 
 ### Import Operation Options
 
-| Option | Type | Required | Description |
-|--------|------|----------|-------------|
-| `type` | string | Yes | Must be `'import'` |
-| `title` | string | Yes | Display title |
-| `description` | string | No | Short description |
-| `tab` | string | No | Tab to display in (default: `'importers'`) |
-| `icon` | string | No | Dashicon class |
-| `singular` | string | No | Singular item name |
-| `plural` | string | No | Plural item name |
-| `batch_size` | int | No | Rows per batch (default: `100`) |
-| `fields` | array | Yes | Field definitions for mapping |
-| `update_existing` | bool | No | Allow updating existing records |
-| `match_field` | string | No | Field to match for updates |
-| `skip_empty_rows` | bool | No | Skip rows with all empty values |
-| `validate_callback` | callable | No | Custom row validation function |
-| `process_callback` | callable | Yes | Function to process each row |
+| Option              | Type     | Required | Description                                |
+|---------------------|----------|----------|--------------------------------------------|
+| `type`              | string   | Yes      | Must be `'import'`                         |
+| `title`             | string   | Yes      | Display title                              |
+| `description`       | string   | No       | Short description                          |
+| `tab`               | string   | No       | Tab to display in (default: `'importers'`) |
+| `icon`              | string   | No       | Dashicon class                             |
+| `singular`          | string   | No       | Singular item name                         |
+| `plural`            | string   | No       | Plural item name                           |
+| `batch_size`        | int      | No       | Rows per batch (default: `100`)            |
+| `fields`            | array    | Yes      | Field definitions for mapping              |
+| `update_existing`   | bool     | No       | Allow updating existing records            |
+| `match_field`       | string   | No       | Field to match for updates                 |
+| `skip_empty_rows`   | bool     | No       | Skip rows with all empty values            |
+| `validate_callback` | callable | No       | Custom row validation function             |
+| `process_callback`  | callable | Yes      | Function to process each row               |
 
 ### Field Definition Options
 
@@ -228,6 +229,7 @@ function my_fetch_stripe_products( string $cursor, int $batch_size ): array {
 Processes a single item (sync) or row (import). Must return a status string or `WP_Error`.
 
 **Valid return values:**
+
 - `'created'` - New record was created
 - `'updated'` - Existing record was updated
 - `'skipped'` - Record was intentionally skipped
@@ -404,6 +406,7 @@ $all = get_all_importers();
 ### Activity Log
 
 Both sync and import operations display a real-time activity log showing:
+
 - Batch progress with counts (created, updated, skipped, failed)
 - Individual errors with item identifiers
 - Completion summary with duration
@@ -413,6 +416,7 @@ The log can be closed after completion using the X button.
 ### Error History
 
 When operations have errors, the "Errors" count becomes clickable. Clicking it reveals a panel showing:
+
 - Recent errors from the last run (up to 20 displayed)
 - Item identifier and error message
 - "Copy" button to copy all errors to clipboard as tab-separated text
@@ -420,6 +424,7 @@ When operations have errors, the "Errors" count becomes clickable. Clicking it r
 ### Dynamic Field Mapping Preview
 
 During CSV import, the preview table updates in real-time as you change field mappings:
+
 - Shows your target fields as columns (not raw CSV headers)
 - Updates immediately when you change a dropdown
 - Unmapped fields appear grayed out with "(unmapped)" label
@@ -428,6 +433,7 @@ During CSV import, the preview table updates in real-time as you change field ma
 ### Responsive Grid Layout
 
 Operation cards automatically arrange based on count:
+
 - 1 operation: Full width
 - 2 operations: 2 columns
 - 3 operations: 3 columns
@@ -438,6 +444,7 @@ Collapses to fewer columns on smaller screens.
 ### Step Navigation (Imports)
 
 Import operations use a 4-step wizard:
+
 1. **Upload** - Drop or select CSV file
 2. **Map Fields** - Map CSV columns to your fields with live preview
 3. **Processing** - Watch progress with activity log
@@ -466,22 +473,23 @@ Stats are stored in WordPress options:
 
 The library registers endpoints under `importers/v1/`:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/upload` | POST | Upload CSV file |
-| `/preview/{uuid}` | GET | Get CSV preview (first 5 rows + headers) |
-| `/import/start` | POST | Initialize import operation |
-| `/import/batch` | POST | Process import batch |
-| `/sync/start` | POST | Initialize sync operation |
-| `/sync/batch` | POST | Process sync batch |
-| `/complete` | POST | Mark operation complete |
-| `/stats/{page}/{operation}` | GET | Get operation stats |
+| Endpoint                    | Method | Description                              |
+|-----------------------------|--------|------------------------------------------|
+| `/upload`                   | POST   | Upload CSV file                          |
+| `/preview/{uuid}`           | GET    | Get CSV preview (first 5 rows + headers) |
+| `/import/start`             | POST   | Initialize import operation              |
+| `/import/batch`             | POST   | Process import batch                     |
+| `/sync/start`               | POST   | Initialize sync operation                |
+| `/sync/batch`               | POST   | Process sync batch                       |
+| `/complete`                 | POST   | Mark operation complete                  |
+| `/stats/{page}/{operation}` | GET    | Get operation stats                      |
 
 All endpoints require the `wp_rest` nonce and appropriate user capabilities.
 
 ## Complete Example
 
 See the `examples/sugarcart-example.php` file for a complete working example including:
+
 - Multiple sync operations (products, customers, orders)
 - CSV import with validation
 - Database table creation on activation
@@ -490,6 +498,7 @@ See the `examples/sugarcart-example.php` file for a complete working example inc
 ## Changelog
 
 ### 1.0.0
+
 - Initial release
 - Sync and import operations with batch processing
 - CSV field mapping with dynamic preview
