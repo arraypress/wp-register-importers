@@ -1,4 +1,4 @@
-# wp-register-importers v2.0.0
+# WordPress Register Importers
 
 A WordPress library for creating CSV import interfaces with a declarative, WordPress-style API. Define your fields,
 validation rules, and a single process callback — the library handles the UI, file upload, field mapping, batch
@@ -9,7 +9,7 @@ processing, progress tracking, and error reporting.
 Require via Composer in your plugin or theme:
 
 ```bash
-composer require arraypress/register-importers
+composer require arraypress/wp-register-importers
 ```
 
 Then load the autoloader:
