@@ -5,7 +5,7 @@
  * Handles REST API endpoints for CSV import operations.
  *
  * @package     ArrayPress\RegisterImporters
- * @copyright   Copyright (c) 2025, ArrayPress Limited
+ * @copyright   Copyright (c) 2026, ArrayPress Limited
  * @license     GPL2+
  * @since       2.0.0
  */
@@ -110,6 +110,18 @@ class RestApi {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ __CLASS__, 'handle_sample_download' ],
 			'permission_callback' => [ __CLASS__, 'check_permission' ],
+			'args'                => [
+				'page_id'      => [
+					'required'          => true,
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_key',
+				],
+				'operation_id' => [
+					'required'          => true,
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_key',
+				],
+			],
 		] );
 
 		// Dry run (validate without importing)
@@ -129,10 +141,12 @@ class RestApi {
 					'sanitize_callback' => 'sanitize_key',
 				],
 				'file_uuid'    => [
+					'sanitize_callback' => [ __CLASS__, 'sanitize_uuid' ],
 					'required' => true,
 					'type'     => 'string',
 				],
 				'field_map'    => [
+					'sanitize_callback' => [ __CLASS__, 'sanitize_field_map' ],
 					'required' => true,
 					'type'     => 'object',
 				],
@@ -156,10 +170,12 @@ class RestApi {
 					'sanitize_callback' => 'sanitize_key',
 				],
 				'file_uuid'    => [
+					'sanitize_callback' => [ __CLASS__, 'sanitize_uuid' ],
 					'required' => true,
 					'type'     => 'string',
 				],
 				'field_map'    => [
+					'sanitize_callback' => [ __CLASS__, 'sanitize_field_map' ],
 					'required' => true,
 					'type'     => 'object',
 				],
@@ -183,6 +199,7 @@ class RestApi {
 					'sanitize_callback' => 'sanitize_key',
 				],
 				'file_uuid'    => [
+					'sanitize_callback' => [ __CLASS__, 'sanitize_uuid' ],
 					'required' => true,
 					'type'     => 'string',
 				],
@@ -192,6 +209,7 @@ class RestApi {
 					'sanitize_callback' => 'absint',
 				],
 				'field_map'    => [
+					'sanitize_callback' => [ __CLASS__, 'sanitize_field_map' ],
 					'required' => true,
 					'type'     => 'object',
 				],
@@ -220,39 +238,12 @@ class RestApi {
 					'enum'    => [ 'complete', 'cancelled', 'error' ],
 				],
 				'file_uuid'    => [
+					'sanitize_callback' => [ __CLASS__, 'sanitize_uuid' ],
 					'type' => 'string',
 				],
 			],
 		] );
 
-		// Cancel operation
-		register_rest_route( self::NAMESPACE, '/cancel', [
-			'methods'             => WP_REST_Server::CREATABLE,
-			'callback'            => [ __CLASS__, 'handle_cancel' ],
-			'permission_callback' => [ __CLASS__, 'check_permission' ],
-			'args'                => [
-				'page_id'      => [
-					'required'          => true,
-					'type'              => 'string',
-					'sanitize_callback' => 'sanitize_key',
-				],
-				'operation_id' => [
-					'required'          => true,
-					'type'              => 'string',
-					'sanitize_callback' => 'sanitize_key',
-				],
-				'file_uuid'    => [
-					'type' => 'string',
-				],
-			],
-		] );
-
-		// Clear stats
-		register_rest_route( self::NAMESPACE, '/stats/(?P<page_id>[a-z0-9_-]+)/(?P<operation_id>[a-z0-9_-]+)/clear', [
-			'methods'             => WP_REST_Server::DELETABLE,
-			'callback'            => [ __CLASS__, 'handle_clear_stats' ],
-			'permission_callback' => [ __CLASS__, 'check_permission' ],
-		] );
 	}
 
 	/**
@@ -530,9 +521,13 @@ class RestApi {
 		$importers = Registry::instance()->get( $page_id );
 		$operation = $importers ? $importers->get_operation( $operation_id ) : null;
 
-		// Fire before_import callback
+		// Fire before_import callback — can return WP_Error to abort
 		if ( $operation && isset( $operation['before_import'] ) && is_callable( $operation['before_import'] ) ) {
-			call_user_func( $operation['before_import'] );
+			$before_result = call_user_func( $operation['before_import'] );
+
+			if ( is_wp_error( $before_result ) ) {
+				return $before_result;
+			}
 		}
 
 		$stats = StatsManager::init_run(
@@ -732,55 +727,44 @@ class RestApi {
 		], 200 );
 	}
 
+	/** Helpers *****************************************************************/
+
 	/**
-	 * Handle cancel operation request.
+	 * Sanitize a UUID string.
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param WP_REST_Request $request The request object.
+	 * @param string $uuid Raw UUID input.
 	 *
-	 * @return WP_REST_Response
+	 * @return string Sanitized UUID containing only hex chars and dashes.
 	 */
-	public static function handle_cancel( WP_REST_Request $request ): WP_REST_Response {
-		$page_id      = $request->get_param( 'page_id' );
-		$operation_id = $request->get_param( 'operation_id' );
-		$file_uuid    = $request->get_param( 'file_uuid' );
+	public static function sanitize_uuid( string $uuid ): string {
+		return preg_replace( '/[^a-f0-9\-]/', '', strtolower( $uuid ) );
+	}
 
-		$stats = StatsManager::complete_run( $page_id, $operation_id, 'cancelled' );
-
-		if ( $file_uuid ) {
-			FileManager::delete_file( $file_uuid );
+	/**
+	 * Sanitize a field map array.
+	 *
+	 * Ensures both keys and values are sanitized strings.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param mixed $field_map Raw field map input.
+	 *
+	 * @return array Sanitized field map.
+	 */
+	public static function sanitize_field_map( $field_map ): array {
+		if ( ! is_array( $field_map ) && ! is_object( $field_map ) ) {
+			return [];
 		}
 
-		return new WP_REST_Response( [
-			'success' => true,
-			'message' => __( 'Operation cancelled.', 'arraypress' ),
-			'stats'   => $stats,
-		], 200 );
+		$sanitized = [];
+		foreach ( (array) $field_map as $key => $value ) {
+			$sanitized[ sanitize_key( $key ) ] = sanitize_text_field( (string) $value );
+		}
+
+		return $sanitized;
 	}
-
-	/**
-	 * Handle clear stats request.
-	 *
-	 * @since 2.0.0
-	 *
-	 * @param WP_REST_Request $request The request object.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public static function handle_clear_stats( WP_REST_Request $request ): WP_REST_Response {
-		$page_id      = $request->get_param( 'page_id' );
-		$operation_id = $request->get_param( 'operation_id' );
-
-		StatsManager::clear_stats( $page_id, $operation_id );
-
-		return new WP_REST_Response( [
-			'success' => true,
-			'message' => __( 'Stats cleared successfully.', 'arraypress' ),
-		], 200 );
-	}
-
-	/** Helpers *****************************************************************/
 
 	/**
 	 * Get batch size for an operation.

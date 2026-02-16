@@ -5,7 +5,7 @@
  * Handles enqueueing of scripts and styles.
  *
  * @package     ArrayPress\RegisterImporters
- * @copyright   Copyright (c) 2025, ArrayPress Limited
+ * @copyright   Copyright (c) 2026, ArrayPress Limited
  * @license     GPL2+
  * @since       1.0.0
  */
@@ -24,11 +24,11 @@ trait AssetManager {
 	/**
 	 * Maybe enqueue assets on the importers page.
 	 *
-	 * @since 1.0.0
-	 *
 	 * @param string $hook_suffix The current admin page hook suffix.
 	 *
 	 * @return void
+	 * @since 1.0.0
+	 *
 	 */
 	public function maybe_enqueue_assets( string $hook_suffix ): void {
 		if ( $hook_suffix !== $this->hook_suffix ) {
@@ -41,9 +41,9 @@ trait AssetManager {
 	/**
 	 * Enqueue all required assets.
 	 *
+	 * @return void
 	 * @since 1.0.0
 	 *
-	 * @return void
 	 */
 	protected function enqueue_assets(): void {
 		$this->enqueue_core_assets();
@@ -53,9 +53,9 @@ trait AssetManager {
 	/**
 	 * Enqueue core CSS and JS using wp-composer-assets library.
 	 *
+	 * @return void
 	 * @since 1.0.0
 	 *
-	 * @return void
 	 */
 	protected function enqueue_core_assets(): void {
 		wp_enqueue_composer_style(
@@ -75,20 +75,19 @@ trait AssetManager {
 	/**
 	 * Localize scripts with necessary data.
 	 *
+	 * @return void
 	 * @since 2.0.0
 	 *
-	 * @return void
 	 */
 	protected function localize_scripts(): void {
-		$operations_config = [];
 
-		foreach ( $this->get_all_operations() as $id => $operation ) {
-			$operations_config[ $id ] = [
+		$operations_config = array_map( function ( $operation ) {
+			return [
 				'title'     => $operation['title'],
 				'batchSize' => $operation['batch_size'],
 				'fields'    => $operation['fields'] ?? [],
 			];
-		}
+		}, $this->get_all_operations() );
 
 		wp_localize_script( 'arraypress-importers', 'ImportersAdmin', [
 			'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
@@ -103,9 +102,9 @@ trait AssetManager {
 	/**
 	 * Get localized strings for JavaScript.
 	 *
+	 * @return array
 	 * @since 2.0.0
 	 *
-	 * @return array
 	 */
 	protected function get_i18n_strings(): array {
 		return [
@@ -143,7 +142,7 @@ trait AssetManager {
 			'neverImported'      => __( 'Never', 'arraypress' ),
 			'justNow'            => __( 'Just now', 'arraypress' ),
 			'logCopied'          => __( 'Copied!', 'arraypress' ),
-			'dryRun'             => __( 'Preview', 'arraypress' ),
+			'dryRun'             => __( 'Validate', 'arraypress' ),
 			'dryRunning'         => __( 'Validating...', 'arraypress' ),
 			'dryRunComplete'     => __( '%d valid, %d errors out of %d rows', 'arraypress' ),
 			'downloadSample'     => __( 'Download Sample CSV', 'arraypress' ),

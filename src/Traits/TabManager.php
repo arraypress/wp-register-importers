@@ -6,7 +6,7 @@
  * only one tab is configured.
  *
  * @package     ArrayPress\RegisterImporters
- * @copyright   Copyright (c) 2025, ArrayPress Limited
+ * @copyright   Copyright (c) 2026, ArrayPress Limited
  * @license     GPL2+
  * @since       1.0.0
  */

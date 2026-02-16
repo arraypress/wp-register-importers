@@ -6,7 +6,7 @@
  * 3-step wizard: Upload → Map Fields → Import.
  *
  * @package     ArrayPress\RegisterImporters
- * @copyright   Copyright (c) 2025, ArrayPress Limited
+ * @copyright   Copyright (c) 2026, ArrayPress Limited
  * @license     GPL2+
  * @since       2.0.0
  */
@@ -247,7 +247,7 @@ trait OperationRenderer {
                     </button>
                     <button type="button" class="button importers-dry-run-button" style="display: none;">
                         <span class="dashicons dashicons-visibility"></span>
-                        <span class="button-text"><?php esc_html_e( 'Preview', 'arraypress' ); ?></span>
+                        <span class="button-text"><?php esc_html_e( 'Validate', 'arraypress' ); ?></span>
                     </button>
                     <button type="button" class="button button-primary importers-next-button" disabled>
                         <span class="button-text"><?php esc_html_e( 'Continue', 'arraypress' ); ?></span>

@@ -1,716 +1,123 @@
 /**
  * Importers Admin Styles
  *
- * Full-width stacked layout with 3-step wizard.
- * No grid complexity — cards stack vertically.
+ * EDD-style full-bleed header with optional tabs.
+ * Full-width stacked card layout with 3-step wizard.
  *
  * @package ArrayPress\RegisterImporters
  * @since   2.0.0
  */
 
 /* ==========================================================================
-   Layout
+   General Wrapper
    ========================================================================== */
 
 .importers-wrap {
-	max-width: 900px;
-	margin: 20px auto 0;
-	padding: 0 20px;
+    margin-right: 20px;
 }
 
 .importers-wrap * {
-	box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 /* ==========================================================================
-   Header
+   Modern Header (EDD-style, full-bleed)
    ========================================================================== */
 
 .importers-header {
-	margin-bottom: 24px;
+    background: #fff;
+    margin: -8px -20px 0 -20px;
+    border-bottom: 1px solid #c3c4c7;
 }
 
 .importers-header-top {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
 }
 
 .importers-header-branding {
-	display: flex;
-	align-items: center;
-	gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .importers-header-logo {
-	height: 36px;
-	width: auto;
+    max-height: 36px;
+    width: auto;
 }
 
 .importers-header-title {
-	font-size: 23px;
-	font-weight: 400;
-	margin: 0;
-	padding: 0;
-	line-height: 1.3;
-	color: #1d2327;
+    margin: 0;
+    padding: 0;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: #1d2327;
+}
+
+.importers-header-tabs {
+    padding: 0 20px;
+    border-top: 1px solid #dcdcde;
+    background: #fff;
 }
 
 /* ==========================================================================
-   Tabs
+   Tab Navigation (Modern Style)
    ========================================================================== */
 
 .importers-tabs-nav {
-	display: flex;
-	gap: 0;
-	border-bottom: 1px solid #c3c4c7;
-	margin: 0 0 24px;
+    display: flex;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.importers-tabs-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .importers-tab {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 10px 16px;
-	text-decoration: none;
-	color: #50575e;
-	font-size: 13px;
-	font-weight: 500;
-	border-bottom: 2px solid transparent;
-	margin-bottom: -1px;
-	transition: color 0.15s, border-color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    color: #50575e;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    white-space: nowrap;
 }
 
 .importers-tab:hover {
-	color: #2271b1;
+    color: #2271b1;
+    background: #f0f6fc;
 }
 
-.importers-tab-active {
-	color: #1d2327;
-	border-bottom-color: #2271b1;
+.importers-tab:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.importers-tab-active,
+.importers-tab-active:hover {
+    color: #2271b1;
+    border-bottom-color: #2271b1;
+    background: transparent;
 }
 
 .importers-tab .dashicons {
-	font-size: 16px;
-	width: 16px;
-	height: 16px;
-}
-
-/* ==========================================================================
-   Operation Cards — Full Width Stacked
-   ========================================================================== */
-
-.importers-operations-list {
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-}
-
-.importers-card {
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-	overflow: hidden;
-}
-
-/* Card Header */
-.importers-card-header {
-	display: flex;
-	align-items: flex-start;
-	gap: 14px;
-	padding: 16px 20px;
-	border-bottom: 1px solid #f0f0f1;
-}
-
-.importers-card-icon {
-	flex-shrink: 0;
-	width: 40px;
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: #f0f6fc;
-	border-radius: 6px;
-	color: #2271b1;
-}
-
-.importers-card-icon .dashicons {
-	font-size: 20px;
-	width: 20px;
-	height: 20px;
-}
-
-.importers-card-title-wrap {
-	flex: 1;
-	min-width: 0;
-}
-
-.importers-card-title {
-	margin: 0 0 2px;
-	font-size: 14px;
-	font-weight: 600;
-	color: #1d2327;
-	line-height: 1.4;
-}
-
-.importers-card-description {
-	margin: 0;
-	font-size: 13px;
-	color: #646970;
-	line-height: 1.4;
-}
-
-.importers-card-header-actions {
-	flex-shrink: 0;
-}
-
-.importers-download-sample {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 12px;
-	color: #2271b1;
-	text-decoration: none;
-	padding: 4px 8px;
-	border-radius: 3px;
-	transition: background 0.15s;
-}
-
-.importers-download-sample:hover {
-	background: #f0f6fc;
-	color: #135e96;
-}
-
-.importers-download-sample .dashicons {
-	font-size: 14px;
-	width: 14px;
-	height: 14px;
-}
-
-/* Card Body */
-.importers-card-body {
-	padding: 20px;
-}
-
-/* Card Footer */
-.importers-card-footer {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 12px 20px;
-	border-top: 1px solid #f0f0f1;
-	background: #f6f7f7;
-}
-
-.importers-footer-left {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-}
-
-.importers-card-actions {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.importers-card-actions .button .dashicons {
-	font-size: 14px;
-	width: 14px;
-	height: 14px;
-	margin-top: 2px;
-}
-
-.importers-card-meta {
-	font-size: 12px;
-	color: #787c82;
-}
-
-.importers-history-file {
-	color: #a7aaad;
-}
-
-/* ==========================================================================
-   Step Indicator
-   ========================================================================== */
-
-.importers-step-indicator {
-	display: flex;
-	gap: 6px;
-}
-
-.importers-step-dot {
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: #c3c4c7;
-	transition: background 0.2s;
-}
-
-.importers-step-dot.active {
-	background: #2271b1;
-}
-
-.importers-step-dot.completed {
-	background: #00a32a;
-}
-
-/* ==========================================================================
-   Step 1: File Upload / Dropzone
-   ========================================================================== */
-
-.importers-dropzone {
-	position: relative;
-	border: 2px dashed #c3c4c7;
-	border-radius: 6px;
-	text-align: center;
-	transition: border-color 0.2s, background-color 0.2s;
-	cursor: pointer;
-}
-
-.importers-dropzone:hover,
-.importers-dropzone.dragover {
-	border-color: #2271b1;
-	background: #f0f6fc;
-}
-
-.importers-file-input {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	opacity: 0;
-	cursor: pointer;
-	z-index: 2;
-}
-
-.importers-dropzone-label {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 8px;
-	padding: 32px 20px;
-	pointer-events: none;
-}
-
-.importers-dropzone-label .dashicons {
-	font-size: 32px;
-	width: 32px;
-	height: 32px;
-	color: #a7aaad;
-}
-
-.importers-dropzone-text {
-	font-size: 14px;
-	color: #50575e;
-	font-weight: 500;
-}
-
-.importers-dropzone-hint {
-	font-size: 12px;
-	color: #787c82;
-}
-
-/* File Info (shown after upload) */
-.importers-file-info {
-	padding: 12px 16px;
-	background: #f0f6fc;
-	border-radius: 6px;
-	border: 1px solid #c5d9ed;
-}
-
-.importers-file-details {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-.importers-file-details > .dashicons {
-	font-size: 20px;
-	width: 20px;
-	height: 20px;
-	color: #2271b1;
-	flex-shrink: 0;
-}
-
-.importers-file-meta {
-	flex: 1;
-	min-width: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-}
-
-.importers-file-name {
-	font-size: 13px;
-	font-weight: 600;
-	color: #1d2327;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.importers-file-size {
-	font-size: 12px;
-	color: #646970;
-}
-
-.importers-file-remove {
-	background: none;
-	border: none;
-	color: #787c82;
-	cursor: pointer;
-	padding: 4px;
-	border-radius: 3px;
-	transition: color 0.15s, background 0.15s;
-	flex-shrink: 0;
-}
-
-.importers-file-remove:hover {
-	color: #d63638;
-	background: #fcecec;
-}
-
-.importers-file-remove .dashicons {
-	font-size: 16px;
-	width: 16px;
-	height: 16px;
-}
-
-/* ==========================================================================
-   Step 2: Field Mapping
-   ========================================================================== */
-
-.importers-mapping-grid {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	margin-bottom: 20px;
-}
-
-.importers-mapping-row {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 10px 14px;
-	background: #f6f7f7;
-	border-radius: 4px;
-}
-
-.importers-mapping-field {
-	flex: 0 0 200px;
-	font-size: 13px;
-	font-weight: 500;
-	color: #1d2327;
-}
-
-.importers-mapping-field .required-indicator {
-	color: #d63638;
-	margin-left: 2px;
-}
-
-.importers-mapping-arrow {
-	flex-shrink: 0;
-	color: #a7aaad;
-}
-
-.importers-mapping-arrow .dashicons {
-	font-size: 16px;
-	width: 16px;
-	height: 16px;
-}
-
-.importers-mapping-select {
-	flex: 1;
-}
-
-.importers-mapping-select select {
-	width: 100%;
-}
-
-.importers-mapping-group-label {
-	font-size: 12px;
-	font-weight: 600;
-	color: #646970;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
-	padding: 8px 0 4px;
-	border-bottom: 1px solid #e0e0e0;
-	margin-bottom: 4px;
-}
-
-/* Dry Run Results (inline in mapping step) */
-.importers-dry-run-results {
-	margin-top: 16px;
-	padding: 14px;
-	border-radius: 4px;
-	font-size: 13px;
-}
-
-.importers-dry-run-results.success {
-	background: #edfaef;
-	border: 1px solid #b8e6be;
-	color: #1d6329;
-}
-
-.importers-dry-run-results.has-errors {
-	background: #fcf0f1;
-	border: 1px solid #f0c6c8;
-	color: #8a2424;
-}
-
-.importers-dry-run-errors {
-	margin-top: 10px;
-	font-size: 12px;
-}
-
-.importers-dry-run-errors li {
-	margin-bottom: 4px;
-}
-
-/* Preview Table */
-.importers-preview-section h4 {
-	font-size: 13px;
-	font-weight: 600;
-	color: #1d2327;
-	margin: 0 0 10px;
-}
-
-.importers-preview-table-wrap {
-	overflow-x: auto;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-}
-
-.importers-preview-table {
-	width: 100%;
-	border-collapse: collapse;
-	font-size: 12px;
-}
-
-.importers-preview-table th {
-	background: #f0f0f1;
-	font-weight: 600;
-	color: #50575e;
-	text-align: left;
-	padding: 8px 12px;
-	border-bottom: 1px solid #c3c4c7;
-	white-space: nowrap;
-}
-
-.importers-preview-table td {
-	padding: 6px 12px;
-	border-bottom: 1px solid #f0f0f1;
-	color: #1d2327;
-	max-width: 200px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.importers-preview-table tr:last-child td {
-	border-bottom: none;
-}
-
-/* ==========================================================================
-   Step 3: Progress & Results
-   ========================================================================== */
-
-.importers-progress-wrap {
-	margin-bottom: 20px;
-}
-
-.importers-progress-bar {
-	width: 100%;
-	height: 8px;
-	background: #e0e0e0;
-	border-radius: 4px;
-	overflow: hidden;
-	margin-bottom: 8px;
-}
-
-.importers-progress-fill {
-	height: 100%;
-	background: #2271b1;
-	border-radius: 4px;
-	width: 0;
-	transition: width 0.3s ease;
-}
-
-.importers-progress-fill.complete {
-	background: #00a32a;
-}
-
-.importers-progress-fill.error {
-	background: #d63638;
-}
-
-.importers-progress-text {
-	display: flex;
-	justify-content: space-between;
-	font-size: 13px;
-	color: #646970;
-}
-
-.importers-progress-percent {
-	font-weight: 600;
-	color: #1d2327;
-}
-
-/* Live Stats */
-.importers-live-stats {
-	display: flex;
-	gap: 16px;
-	margin-bottom: 20px;
-	padding: 14px;
-	background: #f6f7f7;
-	border-radius: 4px;
-}
-
-.importers-stat {
-	flex: 1;
-	text-align: center;
-}
-
-.importers-stat-value {
-	display: block;
-	font-size: 20px;
-	font-weight: 700;
-	color: #1d2327;
-	line-height: 1;
-	margin-bottom: 4px;
-}
-
-.importers-stat-label {
-	font-size: 11px;
-	color: #787c82;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
-}
-
-.importers-stat-error .importers-stat-value {
-	color: #d63638;
-}
-
-/* Log */
-.importers-log h4 {
-	font-size: 13px;
-	font-weight: 600;
-	color: #1d2327;
-	margin: 0 0 8px;
-}
-
-.importers-log-entries {
-	max-height: 200px;
-	overflow-y: auto;
-	font-family: Consolas, Monaco, "Andale Mono", monospace;
-	font-size: 12px;
-	line-height: 1.6;
-	background: #1d2327;
-	color: #c3c4c7;
-	padding: 12px 14px;
-	border-radius: 4px;
-}
-
-.importers-log-entry {
-	padding: 1px 0;
-}
-
-.importers-log-entry.error {
-	color: #f86368;
-}
-
-.importers-log-entry.success {
-	color: #68de7c;
-}
-
-.importers-log-entry.info {
-	color: #72aee6;
-}
-
-/* Complete Summary */
-.importers-complete-summary {
-	text-align: center;
-	padding: 24px 0;
-}
-
-.importers-complete-icon .dashicons {
-	font-size: 48px;
-	width: 48px;
-	height: 48px;
-	color: #00a32a;
-}
-
-.importers-complete-summary.has-errors .importers-complete-icon .dashicons {
-	color: #dba617;
-}
-
-.importers-complete-title {
-	font-size: 18px;
-	font-weight: 600;
-	color: #1d2327;
-	margin: 12px 0 8px;
-}
-
-/* Error Table */
-.importers-errors-table-wrap {
-	overflow-x: auto;
-	border: 1px solid #f0c6c8;
-	border-radius: 4px;
-	margin-top: 12px;
-	text-align: left;
-}
-
-.importers-errors-table {
-	width: 100%;
-	border-collapse: collapse;
-	font-size: 12px;
-}
-
-.importers-errors-table th {
-	background: #fcf0f1;
-	font-weight: 600;
-	color: #8a2424;
-	text-align: left;
-	padding: 8px 12px;
-	border-bottom: 1px solid #f0c6c8;
-}
-
-.importers-errors-table td {
-	padding: 6px 12px;
-	border-bottom: 1px solid #f0f0f1;
-	color: #50575e;
-}
-
-/* ==========================================================================
-   Empty State
-   ========================================================================== */
-
-.importers-empty-state {
-	text-align: center;
-	padding: 60px 20px;
-	color: #787c82;
-}
-
-.importers-empty-state .dashicons {
-	font-size: 48px;
-	width: 48px;
-	height: 48px;
-	color: #c3c4c7;
-	margin-bottom: 16px;
-}
-
-.importers-empty-state h3 {
-	font-size: 16px;
-	color: #50575e;
-	margin: 0 0 8px;
-}
-
-.importers-empty-state p {
-	font-size: 14px;
-	margin: 0;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
 }
 
 /* ==========================================================================
@@ -718,11 +125,676 @@
    ========================================================================== */
 
 .importers-notices {
-	margin-bottom: 16px;
+    margin: 20px 0;
+    clear: both;
 }
 
-.importers-notices .notice {
-	margin: 0 0 12px;
+.importers-notices:empty {
+    display: none;
+    margin: 0;
+}
+
+/* ==========================================================================
+   Content Area
+   ========================================================================== */
+
+.importers-content {
+    margin-top: 20px;
+}
+
+/* ==========================================================================
+   Operation Cards — Full Width Stacked
+   ========================================================================== */
+
+.importers-operations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.importers-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Card Header */
+.importers-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.importers-card-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f6fc;
+    border-radius: 6px;
+    color: #2271b1;
+}
+
+.importers-card-icon .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.importers-card-title-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+.importers-card-title {
+    margin: 0 0 2px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.4;
+}
+
+.importers-card-description {
+    margin: 0;
+    font-size: 13px;
+    color: #646970;
+    line-height: 1.4;
+}
+
+.importers-card-header-actions {
+    flex-shrink: 0;
+}
+
+.importers-download-sample {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #2271b1;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: background 0.15s;
+}
+
+.importers-download-sample:hover {
+    background: #f0f6fc;
+    color: #135e96;
+}
+
+.importers-download-sample .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+/* Card Body */
+.importers-card-body {
+    padding: 20px;
+}
+
+/* Card Footer */
+.importers-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-top: 1px solid #f0f0f1;
+    background: #f6f7f7;
+}
+
+.importers-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.importers-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.importers-card-actions .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.importers-card-actions .button .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.importers-card-meta {
+    font-size: 12px;
+    color: #787c82;
+}
+
+.importers-history-file {
+    color: #a7aaad;
+}
+
+/* ==========================================================================
+   Step Indicator
+   ========================================================================== */
+
+.importers-step-indicator {
+    display: flex;
+    gap: 6px;
+}
+
+.importers-step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c3c4c7;
+    transition: background 0.2s;
+}
+
+.importers-step-dot.active {
+    background: #2271b1;
+}
+
+.importers-step-dot.completed {
+    background: #00a32a;
+}
+
+/* ==========================================================================
+   Step 1: File Upload / Dropzone
+   ========================================================================== */
+
+.importers-dropzone {
+    position: relative;
+    border: 2px dashed #c3c4c7;
+    border-radius: 6px;
+    text-align: center;
+    transition: border-color 0.2s, background-color 0.2s;
+    cursor: pointer;
+}
+
+.importers-dropzone:hover,
+.importers-dropzone.dragover {
+    border-color: #2271b1;
+    background: #f0f6fc;
+}
+
+.importers-file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.importers-dropzone-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 32px 20px;
+    pointer-events: none;
+}
+
+.importers-dropzone-label .dashicons {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: #a7aaad;
+}
+
+.importers-dropzone-text {
+    font-size: 14px;
+    color: #50575e;
+    font-weight: 500;
+}
+
+.importers-dropzone-hint {
+    font-size: 12px;
+    color: #787c82;
+}
+
+/* File Info (shown after upload) */
+.importers-file-info {
+    padding: 12px 16px;
+    background: #f0f6fc;
+    border-radius: 6px;
+    border: 1px solid #c5d9ed;
+}
+
+.importers-file-details {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.importers-file-details > .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #2271b1;
+    flex-shrink: 0;
+}
+
+.importers-file-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.importers-file-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.importers-file-size {
+    font-size: 12px;
+    color: #646970;
+}
+
+.importers-file-remove {
+    background: none;
+    border: none;
+    color: #787c82;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 3px;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+}
+
+.importers-file-remove:hover {
+    color: #d63638;
+    background: #fcecec;
+}
+
+.importers-file-remove .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* ==========================================================================
+   Step 2: Field Mapping
+   ========================================================================== */
+
+.importers-mapping-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.importers-mapping-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f6f7f7;
+    border-radius: 4px;
+}
+
+.importers-mapping-field {
+    flex: 0 0 200px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1d2327;
+}
+
+.importers-mapping-field .required-indicator {
+    color: #d63638;
+    margin-left: 2px;
+}
+
+.importers-mapping-arrow {
+    flex-shrink: 0;
+    color: #a7aaad;
+}
+
+.importers-mapping-arrow .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.importers-mapping-select {
+    flex: 1;
+}
+
+.importers-mapping-select select {
+    width: 100%;
+}
+
+.importers-mapping-group-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #646970;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 0 4px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 4px;
+}
+
+/* Dry Run Results */
+.importers-dry-run-results {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.importers-dry-run-results.success {
+    background: #edfaef;
+    border: 1px solid #b8e6be;
+    color: #1d6329;
+}
+
+.importers-dry-run-results.has-errors {
+    background: #fcf0f1;
+    border: 1px solid #f0c6c8;
+    color: #8a2424;
+}
+
+.importers-dry-run-errors {
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.importers-dry-run-errors li {
+    margin-bottom: 4px;
+}
+
+/* Preview Table */
+.importers-preview-section h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+    margin: 0 0 10px;
+}
+
+.importers-preview-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+.importers-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.importers-preview-table th {
+    background: #f0f0f1;
+    font-weight: 600;
+    color: #50575e;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid #c3c4c7;
+    white-space: nowrap;
+}
+
+.importers-preview-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid #f0f0f1;
+    color: #1d2327;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.importers-preview-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* ==========================================================================
+   Step 3: Progress & Results
+   ========================================================================== */
+
+.importers-progress-wrap {
+    margin-bottom: 20px;
+}
+
+.importers-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.importers-progress-fill {
+    height: 100%;
+    background: #2271b1;
+    border-radius: 4px;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.importers-progress-fill.complete {
+    background: #00a32a;
+}
+
+.importers-progress-fill.error {
+    background: #d63638;
+}
+
+.importers-progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #646970;
+}
+
+.importers-progress-percent {
+    font-weight: 600;
+    color: #1d2327;
+}
+
+/* Live Stats */
+.importers-live-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 14px;
+    background: #f6f7f7;
+    border-radius: 4px;
+}
+
+.importers-stat {
+    flex: 1;
+    text-align: center;
+}
+
+.importers-stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1d2327;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.importers-stat-label {
+    font-size: 11px;
+    color: #787c82;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.importers-stat-error .importers-stat-value {
+    color: #d63638;
+}
+
+/* Log */
+.importers-log h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+    margin: 0 0 8px;
+}
+
+.importers-log-entries {
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: Consolas, Monaco, "Andale Mono", monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    background: #1d2327;
+    color: #c3c4c7;
+    padding: 12px 14px;
+    border-radius: 4px;
+}
+
+.importers-log-entry {
+    padding: 1px 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    margin: 0;
+}
+
+.importers-log-entry.error {
+    color: #f86368;
+    background: none;
+    border: none;
+    border-left: none;
+    box-shadow: none;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.importers-log-entry.success {
+    color: #68de7c;
+}
+
+.importers-log-entry.info {
+    color: #72aee6;
+}
+
+/* Complete Summary */
+.importers-complete-summary {
+    text-align: center;
+    padding: 24px 0;
+}
+
+.importers-complete-icon .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #00a32a;
+}
+
+.importers-complete-summary.has-errors .importers-complete-icon .dashicons {
+    color: #dba617;
+}
+
+.importers-complete-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d2327;
+    margin: 12px 0 8px;
+}
+
+/* Error Table */
+.importers-complete-errors {
+    text-align: left;
+    margin-top: 16px;
+}
+
+.importers-complete-errors h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8a2424;
+    margin: 0 0 8px;
+}
+
+.importers-errors-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #f0c6c8;
+    border-radius: 4px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.importers-errors-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    table-layout: fixed;
+}
+
+.importers-errors-table th {
+    background: #fcf0f1;
+    font-weight: 600;
+    color: #8a2424;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0c6c8;
+}
+
+.importers-errors-table th:first-child {
+    width: 60px;
+}
+
+.importers-errors-table th:nth-child(2) {
+    width: 35%;
+}
+
+.importers-errors-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid #f0f0f1;
+    color: #50575e;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.importers-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #787c82;
+}
+
+.importers-empty-state .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #c3c4c7;
+    margin-bottom: 16px;
+}
+
+.importers-empty-state h3 {
+    font-size: 16px;
+    color: #50575e;
+    margin: 0 0 8px;
+}
+
+.importers-empty-state p {
+    font-size: 14px;
+    margin: 0;
 }
 
 /* ==========================================================================
@@ -730,57 +802,57 @@
    ========================================================================== */
 
 @media screen and (max-width: 782px) {
-	.importers-wrap {
-		padding: 0 10px;
-	}
+    .importers-header {
+        margin: -8px -10px 0 -10px;
+    }
 
-	.importers-card-header {
-		flex-wrap: wrap;
-		gap: 10px;
-	}
+    .importers-card-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 
-	.importers-card-header-actions {
-		width: 100%;
-		padding-left: 54px;
-	}
+    .importers-card-header-actions {
+        width: 100%;
+        padding-left: 54px;
+    }
 
-	.importers-mapping-row {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 6px;
-	}
+    .importers-mapping-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
 
-	.importers-mapping-field {
-		flex: none;
-	}
+    .importers-mapping-field {
+        flex: none;
+    }
 
-	.importers-mapping-arrow {
-		display: none;
-	}
+    .importers-mapping-arrow {
+        display: none;
+    }
 
-	.importers-mapping-select {
-		width: 100%;
-	}
+    .importers-mapping-select {
+        width: 100%;
+    }
 
-	.importers-live-stats {
-		flex-wrap: wrap;
-	}
+    .importers-live-stats {
+        flex-wrap: wrap;
+    }
 
-	.importers-stat {
-		flex: 0 0 calc(50% - 8px);
-	}
+    .importers-stat {
+        flex: 0 0 calc(50% - 8px);
+    }
 
-	.importers-card-footer {
-		flex-direction: column;
-		gap: 12px;
-		align-items: stretch;
-	}
+    .importers-card-footer {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
 
-	.importers-footer-left {
-		justify-content: center;
-	}
+    .importers-footer-left {
+        justify-content: center;
+    }
 
-	.importers-card-actions {
-		justify-content: flex-end;
-	}
+    .importers-card-actions {
+        justify-content: flex-end;
+    }
 }

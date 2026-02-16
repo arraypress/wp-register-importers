@@ -435,7 +435,7 @@
                 url: ImportersAdmin.restUrl + 'preview/' + this.fileData.uuid,
                 method: 'GET',
                 headers: {'X-WP-Nonce': ImportersAdmin.restNonce},
-                data: {max_rows: 3},
+                data: {max_rows: 5},
                 success: function (response) {
                     if (response.success) {
                         self.renderPreview(response.preview);
@@ -749,7 +749,13 @@
         showCompleteSummary: function (stats, status) {
             this.$completeSummary.show();
 
-            if (stats.failed > 0) {
+            // Update progress bar colour based on actual results
+            if (stats.failed > 0 && (stats.created || 0) === 0 && (stats.updated || 0) === 0) {
+                // All failed — show error state
+                this.$progressFill.removeClass('complete').addClass('error');
+                this.$completeSummary.addClass('has-errors');
+            } else if (stats.failed > 0) {
+                // Partial failure — warning state
                 this.$completeSummary.addClass('has-errors');
             }
 
@@ -781,19 +787,6 @@
 
             this.isCancelled = true;
             this.addLogEntry(ImportersAdmin.i18n.operationCancelled, 'info');
-
-            $.ajax({
-                url: ImportersAdmin.restUrl + 'cancel',
-                method: 'POST',
-                headers: {'X-WP-Nonce': ImportersAdmin.restNonce},
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    page_id: ImportersAdmin.pageId,
-                    operation_id: this.operationId,
-                    file_uuid: this.fileData ? this.fileData.uuid : null
-                })
-            });
-
             this.completeImport('cancelled');
         },
 

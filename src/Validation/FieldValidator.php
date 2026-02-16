@@ -6,7 +6,7 @@
  * resolution for CSV import rows based on declarative field definitions.
  *
  * @package     ArrayPress\RegisterImporters
- * @copyright   Copyright (c) 2025, ArrayPress Limited
+ * @copyright   Copyright (c) 2026, ArrayPress Limited
  * @license     GPL2+
  * @since       2.0.0
  */
@@ -56,175 +56,35 @@ class FieldValidator {
 	 * @var array
 	 */
 	const CURRENCY_CODES = [
-		'AED',
-		'AFN',
-		'ALL',
-		'AMD',
-		'ANG',
-		'AOA',
-		'ARS',
-		'AUD',
-		'AWG',
-		'AZN',
-		'BAM',
-		'BBD',
-		'BDT',
-		'BGN',
-		'BHD',
-		'BIF',
-		'BMD',
-		'BND',
-		'BOB',
-		'BRL',
-		'BSD',
-		'BTN',
-		'BWP',
-		'BYN',
-		'BZD',
-		'CAD',
-		'CDF',
-		'CHF',
-		'CLP',
-		'CNY',
-		'COP',
-		'CRC',
-		'CUP',
-		'CVE',
-		'CZK',
-		'DJF',
-		'DKK',
-		'DOP',
-		'DZD',
-		'EGP',
-		'ERN',
-		'ETB',
-		'EUR',
-		'FJD',
-		'FKP',
-		'GBP',
-		'GEL',
-		'GHS',
-		'GIP',
-		'GMD',
-		'GNF',
-		'GTQ',
-		'GYD',
-		'HKD',
-		'HNL',
-		'HRK',
-		'HTG',
-		'HUF',
-		'IDR',
-		'ILS',
-		'INR',
-		'IQD',
-		'IRR',
-		'ISK',
-		'JMD',
-		'JOD',
-		'JPY',
-		'KES',
-		'KGS',
-		'KHR',
-		'KMF',
-		'KPW',
-		'KRW',
-		'KWD',
-		'KYD',
-		'KZT',
-		'LAK',
-		'LBP',
-		'LKR',
-		'LRD',
-		'LSL',
-		'LYD',
-		'MAD',
-		'MDL',
-		'MGA',
-		'MKD',
-		'MMK',
-		'MNT',
-		'MOP',
-		'MRU',
-		'MUR',
-		'MVR',
-		'MWK',
-		'MXN',
-		'MYR',
-		'MZN',
-		'NAD',
-		'NGN',
-		'NIO',
-		'NOK',
-		'NPR',
-		'NZD',
-		'OMR',
-		'PAB',
-		'PEN',
-		'PGK',
-		'PHP',
-		'PKR',
-		'PLN',
-		'PYG',
-		'QAR',
-		'RON',
-		'RSD',
-		'RUB',
-		'RWF',
-		'SAR',
-		'SBD',
-		'SCR',
-		'SDG',
-		'SEK',
-		'SGD',
-		'SHP',
-		'SLE',
-		'SOS',
-		'SRD',
-		'SSP',
-		'STN',
-		'SVC',
-		'SYP',
-		'SZL',
-		'THB',
-		'TJS',
-		'TMT',
-		'TND',
-		'TOP',
-		'TRY',
-		'TTD',
-		'TWD',
-		'TZS',
-		'UAH',
-		'UGX',
-		'USD',
-		'UYU',
-		'UZS',
-		'VES',
-		'VND',
-		'VUV',
-		'WST',
-		'XAF',
-		'XCD',
-		'XOF',
-		'XPF',
-		'YER',
-		'ZAR',
-		'ZMW',
-		'ZWL',
+		'AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG', 'AZN',
+		'BAM', 'BBD', 'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BRL',
+		'BSD', 'BTN', 'BWP', 'BYN', 'BZD', 'CAD', 'CDF', 'CHF', 'CLP', 'CNY',
+		'COP', 'CRC', 'CUP', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP', 'DZD', 'EGP',
+		'ERN', 'ETB', 'EUR', 'FJD', 'FKP', 'GBP', 'GEL', 'GHS', 'GIP', 'GMD',
+		'GNF', 'GTQ', 'GYD', 'HKD', 'HNL', 'HRK', 'HTG', 'HUF', 'IDR', 'ILS',
+		'INR', 'IQD', 'IRR', 'ISK', 'JMD', 'JOD', 'JPY', 'KES', 'KGS', 'KHR',
+		'KMF', 'KPW', 'KRW', 'KWD', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD',
+		'LSL', 'LYD', 'MAD', 'MDL', 'MGA', 'MKD', 'MMK', 'MNT', 'MOP', 'MRU',
+		'MUR', 'MVR', 'MWK', 'MXN', 'MYR', 'MZN', 'NAD', 'NGN', 'NIO', 'NOK',
+		'NPR', 'NZD', 'OMR', 'PAB', 'PEN', 'PGK', 'PHP', 'PKR', 'PLN', 'PYG',
+		'QAR', 'RON', 'RSD', 'RUB', 'RWF', 'SAR', 'SBD', 'SCR', 'SDG', 'SEK',
+		'SGD', 'SHP', 'SLE', 'SOS', 'SRD', 'SSP', 'STN', 'SVC', 'SYP', 'SZL',
+		'THB', 'TJS', 'TMT', 'TND', 'TOP', 'TRY', 'TTD', 'TWD', 'TZS', 'UAH',
+		'UGX', 'USD', 'UYU', 'UZS', 'VES', 'VND', 'VUV', 'WST', 'XAF', 'XCD',
+		'XOF', 'XPF', 'YER', 'ZAR', 'ZMW', 'ZWL',
 	];
 
 	/**
 	 * Process a single field value through the full validation pipeline.
 	 *
-	 * @param string $key   The field key.
-	 * @param mixed  $value The raw value from CSV.
-	 * @param array  $field The field definition.
-	 * @param array  $row   The full mapped row (for cross-field references).
-	 *
-	 * @return mixed|WP_Error The processed value or WP_Error on failure.
 	 * @since 2.0.0
 	 *
+	 * @param string $key        The field key.
+	 * @param mixed  $value      The raw value from CSV.
+	 * @param array  $field      The field definition.
+	 * @param array  $row        The full mapped row (for cross-field references).
+	 *
+	 * @return mixed|WP_Error The processed value or WP_Error on failure.
 	 */
 	public static function process_field( string $key, $value, array $field, array $row = [] ) {
 		$type = $field['type'] ?? 'string';
@@ -278,6 +138,11 @@ class FieldValidator {
 		if ( in_array( $type, self::WP_TYPES, true ) ) {
 			$value = self::resolve_wp_type( $value, $field );
 			if ( is_wp_error( $value ) ) {
+				// If the field is not required, treat "not found" as null
+				if ( empty( $field['required'] ) ) {
+					return null;
+				}
+
 				return $value;
 			}
 		}
@@ -288,12 +153,12 @@ class FieldValidator {
 	/**
 	 * Process an entire row through field validation.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param array $row    The mapped row data.
 	 * @param array $fields The field definitions.
 	 *
 	 * @return array|WP_Error The processed row or WP_Error on first failure.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function process_row( array $row, array $fields ): array|WP_Error {
 		$processed = [];
@@ -318,12 +183,12 @@ class FieldValidator {
 	 * Runs all validation steps but skips process_callback and
 	 * WordPress type resolution to avoid side effects.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param array $row    The mapped row data.
 	 * @param array $fields The field definitions.
 	 *
 	 * @return true|WP_Error True if valid, WP_Error on first failure.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function validate_row( array $row, array $fields ) {
 		foreach ( $fields as $key => $field ) {
@@ -374,12 +239,12 @@ class FieldValidator {
 	/**
 	 * Check for duplicate values within a dataset for fields marked as unique.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param array $rows   All rows to check.
 	 * @param array $fields Field definitions.
 	 *
 	 * @return array Array of errors, empty if no duplicates found.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function check_duplicates( array $rows, array $fields ): array {
 		$errors     = [];
@@ -426,12 +291,12 @@ class FieldValidator {
 	/**
 	 * Apply transformation rules to a value.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param mixed $value The value to transform.
 	 * @param array $field The field definition.
 	 *
 	 * @return mixed The transformed value.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function apply_transforms( $value, array $field ) {
 		if ( ! is_string( $value ) || $value === '' ) {
@@ -452,12 +317,12 @@ class FieldValidator {
 	/**
 	 * Split a string value by separator into an array.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param string $value     The value to split.
 	 * @param string $separator The separator character(s).
 	 *
 	 * @return array Array of trimmed, non-empty values.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function split_value( string $value, string $separator ): array {
 		// If separator contains multiple characters, try each one
@@ -478,12 +343,12 @@ class FieldValidator {
 	/**
 	 * Cast a value to the specified scalar type.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param mixed  $value The value to cast.
 	 * @param string $type  The target type.
 	 *
 	 * @return mixed The cast value.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function cast_type( $value, string $type ) {
 		if ( $value === null || $value === '' ) {
@@ -520,11 +385,11 @@ class FieldValidator {
 	 *
 	 * Handles common truthy/falsy strings from CSV data.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param mixed $value The value to cast.
 	 *
 	 * @return bool
-	 * @since 2.0.0
-	 *
 	 */
 	private static function cast_boolean( $value ): bool {
 		if ( is_bool( $value ) ) {
@@ -541,13 +406,13 @@ class FieldValidator {
 	/**
 	 * Run built-in validation rules against a field value.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param string $key   The field key.
 	 * @param mixed  $value The value to validate.
 	 * @param array  $field The field definition.
 	 *
 	 * @return true|WP_Error True if valid, WP_Error on failure.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function validate_field( string $key, $value, array $field ) {
 		$label = $field['label'] ?? $key;
@@ -710,12 +575,12 @@ class FieldValidator {
 	 * Handles post, term, user, and attachment lookups with optional
 	 * auto-creation for terms.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param mixed $value The value to resolve (string or array for separator fields).
 	 * @param array $field The field definition.
 	 *
 	 * @return mixed Resolved ID(s) or WP_Error on failure.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function resolve_wp_type( $value, array $field ) {
 		if ( $value === null || $value === '' ) {
@@ -742,16 +607,24 @@ class FieldValidator {
 	/**
 	 * Resolve a single value to a WordPress entity ID.
 	 *
+	 * When match_by is specified, that method is tried first.
+	 * When match_by is 'identifier' (or not set), the resolver
+	 * cascades through multiple strategies automatically:
+	 * - post: id → slug → title → meta
+	 * - term: id → slug → name
+	 * - user: id → email → login → slug
+	 * - attachment: id → url → filename
+	 *
+	 * @since 2.0.0
+	 *
 	 * @param mixed $value The value to resolve.
 	 * @param array $field The field definition.
 	 *
 	 * @return int|WP_Error The entity ID or WP_Error.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function resolve_single_wp_entity( $value, array $field ): int|WP_Error {
 		$type     = $field['type'];
-		$match_by = $field['match_by'] ?? 'id';
+		$match_by = $field['match_by'] ?? 'identifier';
 		$create   = $field['create'] ?? false;
 		$label    = $field['label'] ?? $type;
 
@@ -779,73 +652,65 @@ class FieldValidator {
 	/**
 	 * Resolve a value to a post ID.
 	 *
+	 * When match_by is 'identifier', cascades: id → slug → title.
+	 * When a specific match_by is given, only that method is tried.
+	 *
+	 * @since 2.0.0
+	 *
 	 * @param mixed  $value    The value to match.
 	 * @param array  $field    The field definition.
-	 * @param string $match_by How to match (title, slug, id, meta).
+	 * @param string $match_by How to match (identifier, title, slug, id, meta).
 	 * @param string $label    The field label for error messages.
 	 *
 	 * @return int|WP_Error The post ID or WP_Error.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function resolve_post( $value, array $field, string $match_by, string $label ): int|WP_Error {
-		$post_type = $field['post_type'] ?? 'post';
+		$post_type   = $field['post_type'] ?? 'post';
+		$post_status = $field['post_status'] ?? 'any';
 
-		switch ( $match_by ) {
-			case 'id':
-				$post = get_post( (int) $value );
-				if ( $post && $post->post_type === $post_type ) {
-					return $post->ID;
-				}
-				break;
+		$base_args = [
+			'post_type'      => $post_type,
+			'post_status'    => $post_status,
+			'posts_per_page' => 1,
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
+		];
 
-			case 'title':
-				$posts = get_posts( [
-					'post_type'      => $post_type,
-					'title'          => $value,
-					'posts_per_page' => 1,
-					'post_status'    => 'any',
-					'fields'         => 'ids',
-				] );
-				if ( ! empty( $posts ) ) {
-					return $posts[0];
-				}
-				break;
+		// Specific match_by — only try that method
+		if ( $match_by !== 'identifier' ) {
+			$result = self::resolve_post_by( $value, $match_by, $field, $base_args );
+			if ( $result !== null ) {
+				return $result;
+			}
 
-			case 'slug':
-				$posts = get_posts( [
-					'post_type'      => $post_type,
-					'name'           => sanitize_title( $value ),
-					'posts_per_page' => 1,
-					'post_status'    => 'any',
-					'fields'         => 'ids',
-				] );
-				if ( ! empty( $posts ) ) {
-					return $posts[0];
-				}
-				break;
+			return new WP_Error(
+				'post_not_found',
+				sprintf( __( '%s "%s" not found.', 'arraypress' ), $label, $value )
+			);
+		}
 
-			case 'meta':
-				$meta_key = $field['meta_key'] ?? '';
-				if ( empty( $meta_key ) ) {
-					return new WP_Error(
-						'missing_meta_key',
-						sprintf( __( '%s requires a meta_key for matching.', 'arraypress' ), $label )
-					);
-				}
+		// Identifier mode — cascade through strategies
 
-				$posts = get_posts( [
-					'post_type'      => $post_type,
-					'meta_key'       => $meta_key,
-					'meta_value'     => $value,
-					'posts_per_page' => 1,
-					'post_status'    => 'any',
-					'fields'         => 'ids',
-				] );
-				if ( ! empty( $posts ) ) {
-					return $posts[0];
-				}
-				break;
+		// 1. Numeric → try by ID
+		if ( is_numeric( $value ) ) {
+			$post = get_post( (int) $value );
+			if ( $post instanceof \WP_Post && ( $post_type === 'any' || $post->post_type === $post_type ) ) {
+				return $post->ID;
+			}
+		}
+
+		// 2. Try by slug
+		$args  = array_merge( $base_args, [ 'name' => sanitize_title( $value ) ] );
+		$posts = get_posts( $args );
+		if ( ! empty( $posts ) ) {
+			return $posts[0];
+		}
+
+		// 3. Try by title
+		$args  = array_merge( $base_args, [ 'title' => $value ] );
+		$posts = get_posts( $args );
+		if ( ! empty( $posts ) ) {
+			return $posts[0];
 		}
 
 		return new WP_Error(
@@ -855,42 +720,117 @@ class FieldValidator {
 	}
 
 	/**
+	 * Try to resolve a post by a specific method.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param mixed  $value     The value to match.
+	 * @param string $match_by  The specific method (id, slug, title, meta).
+	 * @param array  $field     The field definition.
+	 * @param array  $base_args Base get_posts arguments.
+	 *
+	 * @return int|WP_Error|null Post ID, WP_Error for config issues, or null if not found.
+	 */
+	private static function resolve_post_by( $value, string $match_by, array $field, array $base_args ): int|WP_Error|null {
+		switch ( $match_by ) {
+			case 'id':
+				$post      = get_post( (int) $value );
+				$post_type = $field['post_type'] ?? 'post';
+
+				return ( $post instanceof \WP_Post && ( $post_type === 'any' || $post->post_type === $post_type ) )
+					? $post->ID
+					: null;
+
+			case 'slug':
+				$args  = array_merge( $base_args, [ 'name' => sanitize_title( $value ) ] );
+				$posts = get_posts( $args );
+
+				return ! empty( $posts ) ? $posts[0] : null;
+
+			case 'title':
+				$args  = array_merge( $base_args, [ 'title' => $value ] );
+				$posts = get_posts( $args );
+
+				return ! empty( $posts ) ? $posts[0] : null;
+
+			case 'meta':
+				$meta_key = $field['meta_key'] ?? '';
+				if ( empty( $meta_key ) ) {
+					return new WP_Error(
+						'missing_meta_key',
+						sprintf( __( '%s requires a meta_key for matching.', 'arraypress' ), $field['label'] ?? 'Field' )
+					);
+				}
+
+				$args  = array_merge( $base_args, [
+					'meta_key'   => $meta_key,
+					'meta_value' => $value,
+				] );
+				$posts = get_posts( $args );
+
+				return ! empty( $posts ) ? $posts[0] : null;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Resolve a value to a term ID, optionally creating it.
+	 *
+	 * When match_by is 'identifier', cascades: id → slug → name.
+	 * When a specific match_by is given, only that method is tried.
+	 * If create is true and term is not found, creates it.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param mixed  $value    The value to match.
 	 * @param array  $field    The field definition.
-	 * @param string $match_by How to match (name, slug, id).
+	 * @param string $match_by How to match (identifier, name, slug, id).
 	 * @param bool   $create   Whether to create the term if not found.
 	 * @param string $label    The field label for error messages.
 	 *
 	 * @return int|WP_Error The term ID or WP_Error.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function resolve_term( $value, array $field, string $match_by, bool $create, string $label ): int|WP_Error {
 		$taxonomy = $field['taxonomy'] ?? 'category';
+		$term     = null;
 
-		switch ( $match_by ) {
-			case 'id':
+		if ( $match_by === 'identifier' ) {
+			// Cascade: id → slug → name
+			if ( is_numeric( $value ) ) {
 				$term = get_term( (int) $value, $taxonomy );
-				if ( $term && ! is_wp_error( $term ) ) {
-					return $term->term_id;
+				if ( is_wp_error( $term ) ) {
+					$term = null;
 				}
-				break;
+			}
 
-			case 'name':
+			if ( ! $term ) {
+				$term = get_term_by( 'slug', $value, $taxonomy );
+			}
+
+			if ( ! $term ) {
 				$term = get_term_by( 'name', $value, $taxonomy );
-				if ( $term ) {
-					return $term->term_id;
-				}
-				break;
+			}
+		} else {
+			// Specific match
+			switch ( $match_by ) {
+				case 'id':
+					$term = get_term( (int) $value, $taxonomy );
+					if ( is_wp_error( $term ) ) {
+						$term = null;
+					}
+					break;
+				case 'slug':
+					$term = get_term_by( 'slug', sanitize_title( $value ), $taxonomy );
+					break;
+				case 'name':
+					$term = get_term_by( 'name', $value, $taxonomy );
+					break;
+			}
+		}
 
-			case 'slug':
-				$term = get_term_by( 'slug', sanitize_title( $value ), $taxonomy );
-				if ( $term ) {
-					return $term->term_id;
-				}
-				break;
+		if ( $term instanceof \WP_Term ) {
+			return $term->term_id;
 		}
 
 		// Auto-create if enabled
@@ -917,36 +857,56 @@ class FieldValidator {
 	/**
 	 * Resolve a value to a user ID.
 	 *
+	 * When match_by is 'identifier', cascades: id → email → login → slug.
+	 * When a specific match_by is given, only that method is tried.
+	 *
+	 * @since 2.0.0
+	 *
 	 * @param mixed  $value    The value to match.
-	 * @param string $match_by How to match (email, login, id, slug).
+	 * @param string $match_by How to match (identifier, email, login, id, slug).
 	 * @param string $label    The field label for error messages.
 	 *
 	 * @return int|WP_Error The user ID or WP_Error.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function resolve_user( $value, string $match_by, string $label ): int|WP_Error {
 		$user = null;
 
-		switch ( $match_by ) {
-			case 'id':
+		if ( $match_by === 'identifier' ) {
+			// Cascade: id → email → login → slug
+			if ( is_numeric( $value ) ) {
 				$user = get_user_by( 'id', (int) $value );
-				break;
+			}
 
-			case 'email':
+			if ( ! $user && is_string( $value ) && is_email( $value ) ) {
 				$user = get_user_by( 'email', $value );
-				break;
+			}
 
-			case 'login':
+			if ( ! $user && is_string( $value ) ) {
 				$user = get_user_by( 'login', $value );
-				break;
+			}
 
-			case 'slug':
+			if ( ! $user && is_string( $value ) ) {
 				$user = get_user_by( 'slug', $value );
-				break;
+			}
+		} else {
+			// Specific match
+			switch ( $match_by ) {
+				case 'id':
+					$user = get_user_by( 'id', (int) $value );
+					break;
+				case 'email':
+					$user = get_user_by( 'email', $value );
+					break;
+				case 'login':
+					$user = get_user_by( 'login', $value );
+					break;
+				case 'slug':
+					$user = get_user_by( 'slug', $value );
+					break;
+			}
 		}
 
-		if ( $user ) {
+		if ( $user instanceof \WP_User ) {
 			return $user->ID;
 		}
 
@@ -959,46 +919,82 @@ class FieldValidator {
 	/**
 	 * Resolve a value to an attachment ID.
 	 *
+	 * When match_by is 'identifier', cascades: id → url → filename.
+	 * When a specific match_by is given, only that method is tried.
+	 * Supports sideloading remote URLs when the 'sideload' option is enabled.
+	 *
+	 * @since 2.0.0
+	 *
 	 * @param mixed  $value    The value to match.
 	 * @param array  $field    The field definition.
-	 * @param string $match_by How to match (url, id, filename).
+	 * @param string $match_by How to match (identifier, url, id, filename).
 	 * @param string $label    The field label for error messages.
 	 *
 	 * @return int|WP_Error The attachment ID or WP_Error.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function resolve_attachment( $value, array $field, string $match_by, string $label ): int|WP_Error {
-		switch ( $match_by ) {
-			case 'id':
+		$sideload = ! empty( $field['sideload'] );
+
+		if ( $match_by === 'identifier' ) {
+			// Cascade: id → url → filename
+
+			// 1. Numeric → try by ID
+			if ( is_numeric( $value ) ) {
 				$post = get_post( (int) $value );
 				if ( $post && $post->post_type === 'attachment' ) {
 					return $post->ID;
 				}
-				break;
+			}
 
-			case 'url':
+			// 2. URL-like → try by URL
+			if ( is_string( $value ) && filter_var( $value, FILTER_VALIDATE_URL ) ) {
 				$attachment_id = attachment_url_to_postid( $value );
 				if ( $attachment_id ) {
 					return $attachment_id;
 				}
 
-				// Sideload remote image if enabled
-				if ( ! empty( $field['sideload'] ) && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+				// Sideload if enabled
+				if ( $sideload ) {
 					return self::sideload_image( $value );
 				}
-				break;
+			}
 
-			case 'filename':
-				global $wpdb;
-				$attachment_id = $wpdb->get_var( $wpdb->prepare(
-					"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid LIKE %s",
-					'%' . $wpdb->esc_like( $value )
-				) );
-				if ( $attachment_id ) {
-					return (int) $attachment_id;
+			// 3. Try by filename
+			if ( is_string( $value ) ) {
+				$result = self::resolve_attachment_by_filename( $value );
+				if ( $result ) {
+					return $result;
 				}
-				break;
+			}
+		} else {
+			// Specific match
+			switch ( $match_by ) {
+				case 'id':
+					$post = get_post( (int) $value );
+					if ( $post && $post->post_type === 'attachment' ) {
+						return $post->ID;
+					}
+					break;
+
+				case 'url':
+					$attachment_id = attachment_url_to_postid( $value );
+					if ( $attachment_id ) {
+						return $attachment_id;
+					}
+
+					// Sideload remote image if enabled
+					if ( $sideload && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+						return self::sideload_image( $value );
+					}
+					break;
+
+				case 'filename':
+					$result = self::resolve_attachment_by_filename( $value );
+					if ( $result ) {
+						return $result;
+					}
+					break;
+			}
 		}
 
 		return new WP_Error(
@@ -1008,13 +1004,35 @@ class FieldValidator {
 	}
 
 	/**
+	 * Find an attachment by filename.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param string $filename The filename to search for.
+	 *
+	 * @return int|null The attachment ID or null.
+	 */
+	private static function resolve_attachment_by_filename( string $filename ): ?int {
+		global $wpdb;
+
+		$like = '%' . $wpdb->esc_like( $filename ) . '%';
+
+		$attachment_id = $wpdb->get_var( $wpdb->prepare(
+			"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid LIKE %s LIMIT 1",
+			$like
+		) );
+
+		return $attachment_id ? (int) $attachment_id : null;
+	}
+
+	/**
 	 * Sideload a remote image into the WordPress media library.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $url The remote image URL.
 	 *
 	 * @return int|WP_Error The attachment ID or WP_Error.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function sideload_image( string $url ): int|WP_Error {
 		if ( ! function_exists( 'media_sideload_image' ) ) {
@@ -1040,11 +1058,11 @@ class FieldValidator {
 	 * Creates a CSV string with headers and one example row
 	 * based on field types, defaults, and options.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param array $fields The field definitions.
 	 *
 	 * @return string CSV content string.
-	 * @since 2.0.0
-	 *
 	 */
 	public static function generate_sample_csv( array $fields ): string {
 		$headers  = [];
@@ -1070,12 +1088,12 @@ class FieldValidator {
 	/**
 	 * Generate an example value for a field.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param string $key   The field key.
 	 * @param array  $field The field definition.
 	 *
 	 * @return string The example value.
-	 * @since 2.0.0
-	 *
 	 */
 	private static function get_example_value( string $key, array $field ): string {
 		// Use default if set
@@ -1093,9 +1111,9 @@ class FieldValidator {
 		// Type-based examples
 		switch ( $type ) {
 			case 'number':
-				return $field['minimum'] ?? '9.99';
+				return (string) ( $field['minimum'] ?? '9.99' );
 			case 'integer':
-				return $field['minimum'] ?? '1';
+				return (string) ( $field['minimum'] ?? '1' );
 			case 'boolean':
 				return 'true';
 			case 'email':

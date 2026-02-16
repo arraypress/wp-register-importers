@@ -5,7 +5,7 @@
  * Handles secure file uploads, storage, and cleanup for CSV imports.
  *
  * @package     ArrayPress\RegisterImporters
- * @copyright   Copyright (c) 2025, ArrayPress Limited
+ * @copyright   Copyright (c) 2026, ArrayPress Limited
  * @license     GPL2+
  * @since       1.0.0
  */
@@ -224,6 +224,9 @@ class FileManager {
 	/**
 	 * Get file metadata by UUID.
 	 *
+	 * Verifies the file still exists on disk and that the current user
+	 * is the one who uploaded it (prevents cross-user file access).
+	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $uuid The file UUID.
@@ -241,6 +244,11 @@ class FileManager {
 		if ( ! file_exists( $file_data['path'] ) ) {
 			delete_transient( self::TRANSIENT_PREFIX . $uuid );
 
+			return null;
+		}
+
+		// Verify ownership — only the uploader can access the file
+		if ( ! empty( $file_data['uploaded_by'] ) && get_current_user_id() !== (int) $file_data['uploaded_by'] ) {
 			return null;
 		}
 

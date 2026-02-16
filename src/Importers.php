@@ -7,7 +7,7 @@
  * progress tracking.
  *
  * @package     ArrayPress\RegisterImporters
- * @copyright   Copyright (c) 2025, ArrayPress Limited
+ * @copyright   Copyright (c) 2026, ArrayPress Limited
  * @license     GPL2+
  * @since       2.0.0
  */
@@ -281,6 +281,10 @@ class Importers {
 	/**
 	 * Render the header with optional logo and tabs.
 	 *
+	 * Uses an EDD-style full-bleed header with negative margins
+	 * to extend edge-to-edge under the WordPress admin bar.
+	 * Tabs display whenever configured, even with a single tab.
+	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $current_tab Current active tab.
@@ -305,12 +309,13 @@ class Importers {
 				</div>
 			</div>
 
-			<?php if ( $this->config['show_tabs'] && $this->has_multiple_tabs() ) : ?>
+			<?php if ( $this->config['show_tabs'] && ! empty( $this->tabs ) ) : ?>
 				<div class="importers-header-tabs">
 					<?php $this->render_tabs( $current_tab ); ?>
 				</div>
 			<?php endif; ?>
 		</div>
+		<hr class="wp-header-end">
 		<?php
 	}
 

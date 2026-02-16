@@ -3,7 +3,7 @@
  * Importers Registry
  *
  * @package     ArrayPress\RegisterImporters
- * @copyright   Copyright (c) 2025, ArrayPress Limited
+ * @copyright   Copyright (c) 2026, ArrayPress Limited
  * @license     GPL2+
  * @since       1.0.0
  */
@@ -36,9 +36,9 @@ class Registry {
 	/**
 	 * Get singleton instance.
 	 *
+	 * @return Registry
 	 * @since 1.0.0
 	 *
-	 * @return Registry
 	 */
 	public static function instance(): Registry {
 		if ( self::$instance === null ) {
@@ -57,12 +57,12 @@ class Registry {
 	/**
 	 * Register an importers instance.
 	 *
-	 * @since 1.0.0
-	 *
 	 * @param string    $id        Unique identifier.
 	 * @param Importers $importers Importers instance.
 	 *
 	 * @return void
+	 * @since 1.0.0
+	 *
 	 */
 	public static function register( string $id, Importers $importers ): void {
 		self::instance()->importers[ $id ] = $importers;
@@ -71,11 +71,11 @@ class Registry {
 	/**
 	 * Get a registered importers page.
 	 *
-	 * @since 1.0.0
-	 *
 	 * @param string $id Importers ID.
 	 *
 	 * @return Importers|null
+	 * @since 1.0.0
+	 *
 	 */
 	public function get( string $id ): ?Importers {
 		return $this->importers[ $id ] ?? null;
@@ -84,11 +84,11 @@ class Registry {
 	/**
 	 * Check if an importers page is registered.
 	 *
-	 * @since 1.0.0
-	 *
 	 * @param string $id Importers ID.
 	 *
 	 * @return bool
+	 * @since 1.0.0
+	 *
 	 */
 	public function has( string $id ): bool {
 		return isset( $this->importers[ $id ] );
@@ -97,9 +97,9 @@ class Registry {
 	/**
 	 * Get all registered importers pages.
 	 *
+	 * @return array<string, Importers>
 	 * @since 1.0.0
 	 *
-	 * @return array<string, Importers>
 	 */
 	public function all(): array {
 		return $this->importers;
@@ -108,11 +108,11 @@ class Registry {
 	/**
 	 * Unregister an importers page.
 	 *
-	 * @since 1.0.0
-	 *
 	 * @param string $id Importers ID.
 	 *
 	 * @return bool
+	 * @since 1.0.0
+	 *
 	 */
 	public function unregister( string $id ): bool {
 		if ( isset( $this->importers[ $id ] ) ) {
