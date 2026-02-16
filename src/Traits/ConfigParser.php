@@ -2,10 +2,13 @@
 /**
  * Config Parser Trait
  *
+ * Handles parsing and normalizing the configuration array
+ * for CSV import operations.
+ *
  * @package     ArrayPress\RegisterImporters
  * @copyright   Copyright (c) 2025, ArrayPress Limited
  * @license     GPL2+
- * @since       1.0.0
+ * @since       2.0.0
  */
 
 declare( strict_types=1 );
@@ -22,6 +25,8 @@ trait ConfigParser {
 	/**
 	 * Parse the configuration array.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @return void
 	 */
 	protected function parse_config(): void {
@@ -32,51 +37,33 @@ trait ConfigParser {
 	/**
 	 * Parse tabs configuration.
 	 *
+	 * Auto-generates a default tab if none provided and there
+	 * are operations configured. Tabs auto-hide when only one exists.
+	 *
+	 * @since 2.0.0
+	 *
 	 * @return void
 	 */
 	protected function parse_tabs(): void {
 		if ( empty( $this->config['tabs'] ) ) {
-			// Create default tabs if operations exist
+			// Create a single default tab if operations exist
 			if ( ! empty( $this->config['operations'] ) ) {
-				$has_syncs   = false;
-				$has_imports = false;
-
-				foreach ( $this->config['operations'] as $operation ) {
-					$type = $operation['type'] ?? 'import';
-					if ( $type === 'sync' ) {
-						$has_syncs = true;
-					} else {
-						$has_imports = true;
-					}
-				}
-
-				if ( $has_syncs ) {
-					$this->tabs['syncs'] = [
-						'label' => __( 'Syncs', 'arraypress' ),
-						'icon'  => 'dashicons-update',
-					];
-				}
-
-				if ( $has_imports ) {
-					$this->tabs['importers'] = [
-						'label' => __( 'Importers', 'arraypress' ),
-						'icon'  => 'dashicons-upload',
-					];
-				}
+				$this->tabs['importers'] = [
+					'label' => __( 'Importers', 'arraypress' ),
+					'icon'  => 'dashicons-upload',
+				];
 			}
 
 			return;
 		}
 
 		foreach ( $this->config['tabs'] as $key => $tab ) {
-			// Handle simple string format: 'syncs' => 'Syncs'
 			if ( is_string( $tab ) ) {
 				$this->tabs[ $key ] = [
 					'label' => $tab,
 					'icon'  => '',
 				];
 			} else {
-				// Full array format
 				$this->tabs[ $key ] = wp_parse_args( $tab, [
 					'label'           => ucfirst( $key ),
 					'icon'            => '',
@@ -89,6 +76,8 @@ trait ConfigParser {
 	/**
 	 * Parse operations configuration.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @return void
 	 */
 	protected function parse_operations(): void {
@@ -98,7 +87,7 @@ trait ConfigParser {
 			return;
 		}
 
-		$first_tab = ! empty( $this->tabs ) ? array_key_first( $this->tabs ) : 'default';
+		$first_tab = ! empty( $this->tabs ) ? array_key_first( $this->tabs ) : 'importers';
 
 		foreach ( $this->config['operations'] as $key => $operation ) {
 			$operation = $this->normalize_operation( $key, $operation, $first_tab );
@@ -115,6 +104,8 @@ trait ConfigParser {
 	/**
 	 * Normalize a single operation configuration.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param string $key       Operation key.
 	 * @param array  $operation Operation configuration.
 	 * @param string $first_tab First tab key for default.
@@ -122,70 +113,40 @@ trait ConfigParser {
 	 * @return array
 	 */
 	protected function normalize_operation( string $key, array $operation, string $first_tab ): array {
-		$type = $operation['type'] ?? 'import';
-
 		$defaults = [
-			'type'             => $type,
-			'title'            => ucfirst( str_replace( [ '_', '-' ], ' ', $key ) ),
-			'description'      => '',
-			'tab'              => $type === 'sync' ? 'syncs' : 'importers',
-			'icon'             => $type === 'sync' ? 'dashicons-update' : 'dashicons-upload',
-			'singular'         => 'item',
-			'plural'           => 'items',
-			'batch_size'       => 100,
-			'capability'       => 'manage_options',
-			'process_callback' => null,
+			'title'             => ucfirst( str_replace( [ '_', '-' ], ' ', $key ) ),
+			'description'       => '',
+			'tab'               => $first_tab,
+			'icon'              => 'dashicons-upload',
+			'batch_size'        => 100,
+			'max_file_size'     => 0,
+			'skip_empty_rows'   => true,
+			'fields'            => [],
+			'validate_callback' => null,
+			'process_callback'  => null,
+			'before_import'     => null,
+			'after_import'      => null,
 		];
 
 		// Ensure tab exists, fallback to first tab
-		if ( ! isset( $this->tabs[ $defaults['tab'] ] ) ) {
-			$defaults['tab'] = $first_tab;
+		if ( isset( $operation['tab'] ) && ! isset( $this->tabs[ $operation['tab'] ] ) ) {
+			$operation['tab'] = $first_tab;
 		}
 
 		$operation = wp_parse_args( $operation, $defaults );
 
-		// Apply type-specific defaults
-		$operation = $this->apply_operation_type_defaults( $operation );
-
-		return $operation;
-	}
-
-	/**
-	 * Apply type-specific default values to operations.
-	 *
-	 * @param array $operation Operation configuration.
-	 *
-	 * @return array
-	 */
-	protected function apply_operation_type_defaults( array $operation ): array {
-		switch ( $operation['type'] ) {
-			case 'sync':
-				$operation = wp_parse_args( $operation, [
-					'data_callback' => null,
-				] );
-				break;
-
-			case 'import':
-				$operation = wp_parse_args( $operation, [
-					'fields'            => [],
-					'update_existing'   => true,
-					'match_field'       => null,
-					'skip_empty_rows'   => true,
-					'validate_callback' => null,
-				] );
-
-				// Normalize fields
-				if ( ! empty( $operation['fields'] ) ) {
-					$operation['fields'] = $this->normalize_fields( $operation['fields'] );
-				}
-				break;
+		// Normalize fields
+		if ( ! empty( $operation['fields'] ) ) {
+			$operation['fields'] = $this->normalize_fields( $operation['fields'] );
 		}
 
 		return $operation;
 	}
 
 	/**
-	 * Normalize field definitions for imports.
+	 * Normalize field definitions.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param array $fields Raw field definitions.
 	 *
@@ -198,18 +159,17 @@ trait ConfigParser {
 			// Handle simple format: 'sku' => 'SKU'
 			if ( is_string( $field ) ) {
 				$normalized[ $key ] = [
-					'label'             => $field,
-					'required'          => false,
-					'default'           => null,
-					'sanitize_callback' => 'sanitize_text_field',
+					'label'    => $field,
+					'type'     => 'string',
+					'required' => false,
+					'default'  => null,
 				];
 			} else {
-				// Full array format
 				$normalized[ $key ] = wp_parse_args( $field, [
-					'label'             => ucfirst( str_replace( [ '_', '-' ], ' ', $key ) ),
-					'required'          => false,
-					'default'           => null,
-					'sanitize_callback' => 'sanitize_text_field',
+					'label'    => ucfirst( str_replace( [ '_', '-' ], ' ', $key ) ),
+					'type'     => 'string',
+					'required' => false,
+					'default'  => null,
 				] );
 			}
 		}
@@ -220,6 +180,8 @@ trait ConfigParser {
 	/**
 	 * Get operations for a specific tab.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @param string $tab Tab key.
 	 *
 	 * @return array
@@ -229,7 +191,9 @@ trait ConfigParser {
 	}
 
 	/**
-	 * Get all operations.
+	 * Get all operations across all tabs.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @return array
 	 */
@@ -245,6 +209,8 @@ trait ConfigParser {
 
 	/**
 	 * Get a specific operation by ID.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $operation_id Operation ID.
 	 *
@@ -262,6 +228,8 @@ trait ConfigParser {
 
 	/**
 	 * Check if an operation exists.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $operation_id Operation ID.
 	 *

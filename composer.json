@@ -1,7 +1,7 @@
 {
   "name": "arraypress/wp-register-importers",
-  "version": "1.0.0",
-  "description": "WordPress library for registering import and sync operations with batch processing, field mapping, and progress tracking.",
+  "version": "2.0.0",
+  "description": "WordPress library for registering CSV import operations with batch processing, field mapping, validation, and progress tracking.",
   "homepage": "https://github.com/arraypress/wp-register-importers/",
   "type": "library",
   "license": "GPL-2.0-or-later",
@@ -37,12 +37,11 @@
   "keywords": [
     "wordpress",
     "importers",
-    "sync",
     "csv",
     "batch-processing",
     "data-import",
-    "api-sync",
     "admin",
-    "migration"
+    "migration",
+    "validation"
   ]
 }

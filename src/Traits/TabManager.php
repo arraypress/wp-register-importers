@@ -2,6 +2,9 @@
 /**
  * Tab Manager Trait
  *
+ * Handles tab navigation and rendering. Tabs auto-hide when
+ * only one tab is configured.
+ *
  * @package     ArrayPress\RegisterImporters
  * @copyright   Copyright (c) 2025, ArrayPress Limited
  * @license     GPL2+
@@ -23,6 +26,8 @@ trait TabManager {
 	 * Get the current active tab.
 	 *
 	 * @return string
+	 * @since 1.0.0
+	 *
 	 */
 	protected function get_current_tab(): string {
 		if ( empty( $this->tabs ) ) {
@@ -31,12 +36,10 @@ trait TabManager {
 
 		$current = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : '';
 
-		// Validate tab exists
 		if ( ! empty( $current ) && isset( $this->tabs[ $current ] ) ) {
 			return $current;
 		}
 
-		// Return first tab as default
 		return array_key_first( $this->tabs );
 	}
 
@@ -46,6 +49,8 @@ trait TabManager {
 	 * @param string $tab Tab key.
 	 *
 	 * @return string
+	 * @since 1.0.0
+	 *
 	 */
 	protected function get_tab_url( string $tab ): string {
 		$args = [
@@ -59,12 +64,16 @@ trait TabManager {
 	/**
 	 * Render the tab navigation.
 	 *
+	 * Only renders when multiple tabs are configured.
+	 *
 	 * @param string $current_tab Currently active tab.
 	 *
 	 * @return void
+	 * @since 1.0.0
+	 *
 	 */
 	protected function render_tabs( string $current_tab ): void {
-		if ( empty( $this->tabs ) ) {
+		if ( empty( $this->tabs ) || count( $this->tabs ) < 2 ) {
 			return;
 		}
 
@@ -91,8 +100,10 @@ trait TabManager {
 	 * Check if the current page has multiple tabs.
 	 *
 	 * @return bool
+	 * @since 1.0.0
+	 *
 	 */
-	protected function has_tabs(): bool {
+	protected function has_multiple_tabs(): bool {
 		return count( $this->tabs ) > 1;
 	}
 
@@ -100,20 +111,11 @@ trait TabManager {
 	 * Get all tabs.
 	 *
 	 * @return array
+	 * @since 1.0.0
+	 *
 	 */
 	public function get_tabs(): array {
 		return $this->tabs;
-	}
-
-	/**
-	 * Get a specific tab configuration.
-	 *
-	 * @param string $tab Tab key.
-	 *
-	 * @return array|null
-	 */
-	public function get_tab( string $tab ): ?array {
-		return $this->tabs[ $tab ] ?? null;
 	}
 
 }

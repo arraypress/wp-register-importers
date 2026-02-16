@@ -1,9 +1,10 @@
 <?php
 /**
- * Example: Registering Importers for a SugarCart-style Plugin
+ * Example: Registering CSV Importers for a SugarCart-style Plugin
  *
- * This example demonstrates how to use the wp-register-importers library
- * to create import and sync operations for a plugin.
+ * Demonstrates how to use the wp-register-importers library (v2)
+ * to create CSV import operations with declarative field validation,
+ * WordPress entity resolution, and before/after hooks.
  *
  * @package     ArrayPress\RegisterImporters
  * @subpackage  Examples
@@ -21,139 +22,148 @@ add_action( 'admin_menu', function () {
 	}
 
 	register_importers( 'sugarcart', [
+
 		// Page configuration
-		'page_title'  => __( 'Import & Sync', 'sugarcart' ),
-		'menu_title'  => __( 'Import & Sync', 'sugarcart' ),
-		'parent_slug' => 'sugarcart',
-		'capability'  => 'manage_options',
-
-		// Optional branding
-		'logo'         => plugins_url( 'assets/images/logo.svg', __FILE__ ),
-		'header_title' => __( 'SugarCart Data Manager', 'sugarcart' ),
-
-		// Tabs (optional - auto-generated if not specified)
-		'tabs' => [
-			'syncs'     => [
-				'label' => __( 'External Syncs', 'sugarcart' ),
-				'icon'  => 'dashicons-update',
-			],
-			'importers' => [
-				'label' => __( 'CSV Importers', 'sugarcart' ),
-				'icon'  => 'dashicons-upload',
-			],
-		],
+		'page_title'   => __( 'Import', 'sugarcart' ),
+		'menu_title'   => __( 'Import', 'sugarcart' ),
+		'parent_slug'  => 'sugarcart',
+		'header_title' => __( 'SugarCart Import', 'sugarcart' ),
 
 		// Operations
 		'operations' => [
 
 			// =====================================================
-			// SYNC OPERATIONS
+			// Import products and prices to Stripe from CSV
 			// =====================================================
-
-			'stripe_products' => [
-				'type'             => 'sync',
-				'tab'              => 'syncs',
-				'title'            => __( 'Stripe Products', 'sugarcart' ),
-				'description'      => __( 'Sync products and prices from your Stripe account.', 'sugarcart' ),
-				'icon'             => 'dashicons-money-alt',
-				'singular'         => 'product',
-				'plural'           => 'products',
-				'batch_size'       => 100,
-				'data_callback'    => 'sugarcart_fetch_stripe_products',
-				'process_callback' => 'sugarcart_process_stripe_product',
-			],
-
-			'stripe_customers' => [
-				'type'             => 'sync',
-				'tab'              => 'syncs',
-				'title'            => __( 'Stripe Customers', 'sugarcart' ),
-				'description'      => __( 'Sync customer data from Stripe.', 'sugarcart' ),
-				'icon'             => 'dashicons-groups',
-				'singular'         => 'customer',
-				'plural'           => 'customers',
-				'batch_size'       => 100,
-				'data_callback'    => 'sugarcart_fetch_stripe_customers',
-				'process_callback' => 'sugarcart_process_stripe_customer',
-			],
-
-			// =====================================================
-			// IMPORT OPERATIONS
-			// =====================================================
-
-			'products_csv' => [
-				'type'             => 'import',
-				'tab'              => 'importers',
-				'title'            => __( 'Import Products', 'sugarcart' ),
-				'description'      => __( 'Import products from a CSV file.', 'sugarcart' ),
-				'icon'             => 'dashicons-products',
-				'singular'         => 'product',
-				'plural'           => 'products',
-				'batch_size'       => 100,
-				'update_existing'  => true,
-				'match_field'      => 'sku',
-				'skip_empty_rows'  => true,
-				'fields'           => [
-					'sku'         => [
-						'label'    => __( 'SKU', 'sugarcart' ),
-						'required' => true,
-					],
-					'name'        => [
+			'import_prices' => [
+				'title'       => __( 'Import Products to Stripe', 'sugarcart' ),
+				'description' => __( 'Create products and prices in Stripe from a CSV file.', 'sugarcart' ),
+				'icon'        => 'dashicons-cloud-upload',
+				'batch_size'  => 25,
+				'fields'      => [
+					'product_name'        => [
 						'label'    => __( 'Product Name', 'sugarcart' ),
 						'required' => true,
 					],
-					'price'       => [
-						'label'             => __( 'Price', 'sugarcart' ),
-						'required'          => true,
-						'sanitize_callback' => 'floatval',
+					'product_description' => [
+						'label' => __( 'Description', 'sugarcart' ),
 					],
-					'description' => [
-						'label'             => __( 'Description', 'sugarcart' ),
-						'required'          => false,
-						'sanitize_callback' => 'wp_kses_post',
+					'amount'              => [
+						'label'    => __( 'Price', 'sugarcart' ),
+						'required' => true,
+						'type'     => 'number',
+						'minimum'  => 0.01,
 					],
-					'category'    => [
-						'label'    => __( 'Category', 'sugarcart' ),
-						'required' => false,
+					'currency'            => [
+						'label'   => __( 'Currency', 'sugarcart' ),
+						'type'    => 'currency',
+						'default' => 'USD',
 					],
-					'stock'       => [
-						'label'             => __( 'Stock Quantity', 'sugarcart' ),
-						'required'          => false,
-						'default'           => 0,
-						'sanitize_callback' => 'absint',
+					'interval'            => [
+						'label'   => __( 'Billing Interval', 'sugarcart' ),
+						'options' => [ 'day', 'week', 'month', 'year' ],
+					],
+					'interval_count'      => [
+						'label'   => __( 'Interval Count', 'sugarcart' ),
+						'type'    => 'integer',
+						'default' => 1,
+						'minimum' => 1,
+					],
+					'image_url'           => [
+						'label' => __( 'Image URL', 'sugarcart' ),
+						'type'  => 'url',
+					],
+					'features'            => [
+						'label'     => __( 'Features', 'sugarcart' ),
+						'separator' => '|',
 					],
 				],
-				'process_callback' => 'sugarcart_import_product_row',
+
+				'before_import'    => function () {
+					// Verify Stripe is configured before starting
+					$stripe = sugarcart_get_stripe_client();
+					if ( ! $stripe->is_configured() ) {
+						wp_die( 'Stripe is not configured.' );
+					}
+				},
+				'after_import'     => function ( $stats ) {
+					// Clear product caches after import
+					delete_transient( 'sugarcart_products_cache' );
+				},
+				'process_callback' => 'sugarcart_process_price_import_row',
 			],
 
-			'coupons_csv' => [
-				'type'             => 'import',
-				'tab'              => 'importers',
-				'title'            => __( 'Import Coupons', 'sugarcart' ),
-				'description'      => __( 'Import discount coupons from a CSV file.', 'sugarcart' ),
-				'icon'             => 'dashicons-tickets-alt',
-				'singular'         => 'coupon',
-				'plural'           => 'coupons',
-				'batch_size'       => 50,
-				'fields'           => [
-					'code'       => [
-						'label'    => __( 'Coupon Code', 'sugarcart' ),
+			// =====================================================
+			// Import customers from CSV
+			// =====================================================
+			'import_customers' => [
+				'title'       => __( 'Import Customers', 'sugarcart' ),
+				'description' => __( 'Import customers from a CSV file.', 'sugarcart' ),
+				'icon'        => 'dashicons-groups',
+				'batch_size'  => 50,
+				'fields'      => [
+					'email'        => [
+						'label'    => __( 'Email', 'sugarcart' ),
 						'required' => true,
+						'type'     => 'email',
+						'unique'   => true,
 					],
-					'type'       => [
-						'label'    => __( 'Discount Type', 'sugarcart' ),
-						'required' => true,
+					'name'         => [
+						'label' => __( 'Name', 'sugarcart' ),
 					],
-					'amount'     => [
-						'label'             => __( 'Amount', 'sugarcart' ),
-						'required'          => true,
-						'sanitize_callback' => 'floatval',
-					],
-					'expires_at' => [
-						'label'    => __( 'Expiration Date', 'sugarcart' ),
-						'required' => false,
+					'country_code' => [
+						'label'     => __( 'Country Code', 'sugarcart' ),
+						'uppercase' => true,
+						'pattern'   => '/^[A-Z]{2}$/',
 					],
 				],
-				'process_callback' => 'sugarcart_import_coupon_row',
+				'process_callback' => 'sugarcart_process_customer_import_row',
+			],
+
+			// =====================================================
+			// Import blog posts with WordPress entity resolution
+			// =====================================================
+			'import_posts' => [
+				'title'       => __( 'Import Blog Posts', 'sugarcart' ),
+				'description' => __( 'Import blog posts with automatic category and author resolution.', 'sugarcart' ),
+				'icon'        => 'dashicons-admin-post',
+				'batch_size'  => 20,
+				'fields'      => [
+					'title'    => [
+						'label'    => __( 'Post Title', 'sugarcart' ),
+						'required' => true,
+					],
+					'content'  => [
+						'label'    => __( 'Content', 'sugarcart' ),
+						'required' => true,
+					],
+					'category' => [
+						'label'    => __( 'Category', 'sugarcart' ),
+						'type'     => 'term',
+						'taxonomy' => 'category',
+						'match_by' => 'name',
+						'create'   => true,
+					],
+					'tags'     => [
+						'label'     => __( 'Tags', 'sugarcart' ),
+						'type'      => 'term',
+						'taxonomy'  => 'post_tag',
+						'match_by'  => 'name',
+						'create'    => true,
+						'separator' => '|',
+					],
+					'author'   => [
+						'label'    => __( 'Author', 'sugarcart' ),
+						'type'     => 'user',
+						'match_by' => 'email',
+					],
+					'status'   => [
+						'label'   => __( 'Status', 'sugarcart' ),
+						'default' => 'draft',
+						'options' => [ 'draft', 'publish', 'pending', 'private' ],
+					],
+				],
+				'process_callback' => 'sugarcart_process_post_import_row',
 			],
 
 		],
@@ -166,301 +176,155 @@ add_action( 'admin_menu', function () {
 // =============================================================================
 
 /**
- * Fetch Stripe products for sync.
+ * Process a price import row.
  *
- * @param string $cursor     Pagination cursor (starting_after ID).
- * @param int    $batch_size Number of items to fetch.
+ * By the time this callback receives the row, all field validation
+ * has already passed: amount is a float, currency is valid ISO code,
+ * interval is one of the allowed values, features is an array, etc.
  *
- * @return array {
- *     @type array    $items    Array of product objects.
- *     @type bool     $has_more Whether more items exist.
- *     @type string   $cursor   Cursor for next batch.
- *     @type int|null $total    Total items if known.
- * }
+ * @param array $row Validated and processed row data.
+ *
+ * @return string|WP_Error 'created', 'updated', or WP_Error.
  */
-function sugarcart_fetch_stripe_products( string $cursor, int $batch_size ): array {
-	// Initialize Stripe client (you'd use your actual Stripe SDK)
+function sugarcart_process_price_import_row( array $row ): string|WP_Error {
 	$stripe = sugarcart_get_stripe_client();
 
-	$params = [
-		'limit'  => $batch_size,
-		'active' => true,
-		'expand' => [ 'data.default_price' ],
-	];
-
-	if ( ! empty( $cursor ) ) {
-		$params['starting_after'] = $cursor;
-	}
-
 	try {
-		$response = $stripe->products->all( $params );
-
-		$items      = $response->data;
-		$has_more   = $response->has_more;
-		$new_cursor = ! empty( $items ) ? end( $items )->id : '';
-
-		return [
-			'items'    => $items,
-			'has_more' => $has_more,
-			'cursor'   => $new_cursor,
-			'total'    => null, // Stripe doesn't provide total count
+		// Build Stripe product params
+		$product_params = [
+			'name'   => $row['product_name'],
+			'active' => true,
 		];
-	} catch ( \Exception $e ) {
-		// Throw exception to be caught by the library
-		throw new \Exception( 'Stripe API error: ' . $e->getMessage() );
-	}
-}
 
-/**
- * Process a single Stripe product.
- *
- * @param object $product Stripe product object.
- *
- * @return string|WP_Error 'created', 'updated', 'skipped', or WP_Error
- */
-function sugarcart_process_stripe_product( object $product ) {
-	global $wpdb;
-
-	$table = $wpdb->prefix . 'sugarcart_products';
-
-	// Check if product exists
-	$existing = $wpdb->get_var( $wpdb->prepare(
-		"SELECT id FROM {$table} WHERE stripe_id = %s",
-		$product->id
-	) );
-
-	$data = [
-		'stripe_id'   => $product->id,
-		'name'        => $product->name,
-		'description' => $product->description ?? '',
-		'active'      => $product->active ? 1 : 0,
-		'updated_at'  => current_time( 'mysql' ),
-	];
-
-	// Get price from default_price if expanded
-	if ( isset( $product->default_price->unit_amount ) ) {
-		$data['price'] = $product->default_price->unit_amount / 100;
-	}
-
-	if ( $existing ) {
-		// Update existing
-		$result = $wpdb->update( $table, $data, [ 'id' => $existing ] );
-
-		if ( $result === false ) {
-			return new WP_Error( 'db_error', 'Failed to update product: ' . $wpdb->last_error );
+		if ( ! empty( $row['product_description'] ) ) {
+			$product_params['description'] = $row['product_description'];
 		}
 
-		return 'updated';
-	} else {
-		// Create new
-		$data['created_at'] = current_time( 'mysql' );
-		$result             = $wpdb->insert( $table, $data );
-
-		if ( $result === false ) {
-			return new WP_Error( 'db_error', 'Failed to create product: ' . $wpdb->last_error );
+		if ( ! empty( $row['image_url'] ) ) {
+			$product_params['images'] = [ $row['image_url'] ];
 		}
+
+		// Features is already an array thanks to the 'separator' field config
+		if ( ! empty( $row['features'] ) ) {
+			$product_params['marketing_features'] = array_map( function ( $feature ) {
+				return [ 'name' => $feature ];
+			}, $row['features'] );
+		}
+
+		// Create product in Stripe
+		$product = $stripe->client->products->create( $product_params );
+
+		// Build price params — amount is already a float from 'type' => 'number'
+		$price_params = [
+			'product'     => $product->id,
+			'currency'    => strtolower( $row['currency'] ),
+			'unit_amount' => (int) round( $row['amount'] * 100 ),
+			'active'      => true,
+		];
+
+		if ( ! empty( $row['interval'] ) ) {
+			$price_params['recurring'] = [
+				'interval'       => $row['interval'],
+				'interval_count' => $row['interval_count'],
+			];
+		}
+
+		$price = $stripe->client->prices->create( $price_params );
 
 		return 'created';
-	}
-}
 
-/**
- * Fetch Stripe customers for sync.
- *
- * @param string $cursor     Pagination cursor.
- * @param int    $batch_size Number of items to fetch.
- *
- * @return array
- */
-function sugarcart_fetch_stripe_customers( string $cursor, int $batch_size ): array {
-	$stripe = sugarcart_get_stripe_client();
-
-	$params = [ 'limit' => $batch_size ];
-
-	if ( ! empty( $cursor ) ) {
-		$params['starting_after'] = $cursor;
-	}
-
-	try {
-		$response = $stripe->customers->all( $params );
-
-		$items      = $response->data;
-		$has_more   = $response->has_more;
-		$new_cursor = ! empty( $items ) ? end( $items )->id : '';
-
-		return [
-			'items'    => $items,
-			'has_more' => $has_more,
-			'cursor'   => $new_cursor,
-			'total'    => null,
-		];
 	} catch ( \Exception $e ) {
-		throw new \Exception( 'Stripe API error: ' . $e->getMessage() );
+		return new WP_Error( 'stripe_error', $e->getMessage() );
 	}
 }
 
 /**
- * Process a single Stripe customer.
+ * Process a customer import row.
  *
- * @param object $customer Stripe customer object.
+ * Email is already validated as a proper email address.
+ * Country code is already uppercased and pattern-validated.
+ *
+ * @param array $row Validated row data.
  *
  * @return string|WP_Error
  */
-function sugarcart_process_stripe_customer( object $customer ) {
+function sugarcart_process_customer_import_row( array $row ): string|WP_Error {
 	global $wpdb;
 
 	$table = $wpdb->prefix . 'sugarcart_customers';
 
-	// Check if customer exists
 	$existing = $wpdb->get_var( $wpdb->prepare(
-		"SELECT id FROM {$table} WHERE stripe_id = %s",
-		$customer->id
+		"SELECT id FROM {$table} WHERE email = %s",
+		$row['email']
 	) );
 
 	$data = [
-		'stripe_id'  => $customer->id,
-		'email'      => $customer->email ?? '',
-		'name'       => $customer->name ?? '',
-		'updated_at' => current_time( 'mysql' ),
+		'email'        => $row['email'],
+		'name'         => $row['name'] ?? '',
+		'country_code' => $row['country_code'] ?? '',
+		'updated_at'   => current_time( 'mysql' ),
 	];
 
 	if ( $existing ) {
 		$wpdb->update( $table, $data, [ 'id' => $existing ] );
 
 		return 'updated';
-	} else {
-		$data['created_at'] = current_time( 'mysql' );
-		$wpdb->insert( $table, $data );
-
-		return 'created';
 	}
+
+	$data['created_at'] = current_time( 'mysql' );
+	$wpdb->insert( $table, $data );
+
+	return 'created';
 }
 
 /**
- * Process a product import row.
+ * Process a blog post import row.
  *
- * @param array $row Mapped row data with field keys.
+ * WordPress entity fields are already resolved to IDs:
+ * - $row['category'] is a term ID (created if needed)
+ * - $row['tags'] is an array of term IDs (created if needed)
+ * - $row['author'] is a user ID
  *
- * @return string|WP_Error 'created', 'updated', 'skipped', or WP_Error
- */
-function sugarcart_import_product_row( array $row ) {
-	global $wpdb;
-
-	$table = $wpdb->prefix . 'sugarcart_products';
-
-	// Validate required fields
-	if ( empty( $row['sku'] ) ) {
-		return new WP_Error( 'missing_sku', 'SKU is required' );
-	}
-
-	if ( empty( $row['name'] ) ) {
-		return new WP_Error( 'missing_name', 'Product name is required' );
-	}
-
-	if ( ! is_numeric( $row['price'] ) || $row['price'] < 0 ) {
-		return new WP_Error( 'invalid_price', 'Invalid price value' );
-	}
-
-	// Check if product exists by SKU
-	$existing = $wpdb->get_var( $wpdb->prepare(
-		"SELECT id FROM {$table} WHERE sku = %s",
-		$row['sku']
-	) );
-
-	$data = [
-		'sku'         => $row['sku'],
-		'name'        => $row['name'],
-		'price'       => floatval( $row['price'] ),
-		'description' => $row['description'] ?? '',
-		'category'    => $row['category'] ?? '',
-		'stock'       => absint( $row['stock'] ?? 0 ),
-		'updated_at'  => current_time( 'mysql' ),
-	];
-
-	if ( $existing ) {
-		$result = $wpdb->update( $table, $data, [ 'id' => $existing ] );
-
-		if ( $result === false ) {
-			return new WP_Error( 'db_error', $wpdb->last_error );
-		}
-
-		return 'updated';
-	} else {
-		$data['created_at'] = current_time( 'mysql' );
-		$result             = $wpdb->insert( $table, $data );
-
-		if ( $result === false ) {
-			return new WP_Error( 'db_error', $wpdb->last_error );
-		}
-
-		return 'created';
-	}
-}
-
-/**
- * Process a coupon import row.
- *
- * @param array $row Mapped row data.
+ * @param array $row Validated and resolved row data.
  *
  * @return string|WP_Error
  */
-function sugarcart_import_coupon_row( array $row ) {
-	global $wpdb;
-
-	$table = $wpdb->prefix . 'sugarcart_coupons';
-
-	// Validate coupon code
-	$code = strtoupper( trim( $row['code'] ?? '' ) );
-	if ( empty( $code ) ) {
-		return new WP_Error( 'missing_code', 'Coupon code is required' );
-	}
-
-	// Validate type
-	$valid_types = [ 'percentage', 'fixed', 'percent', 'amount' ];
-	$type        = strtolower( $row['type'] ?? '' );
-	if ( ! in_array( $type, $valid_types, true ) ) {
-		return new WP_Error( 'invalid_type', 'Invalid discount type. Use: percentage or fixed' );
-	}
-
-	// Normalize type
-	$type = in_array( $type, [ 'percentage', 'percent' ] ) ? 'percentage' : 'fixed';
-
-	// Validate amount
-	$amount = floatval( $row['amount'] ?? 0 );
-	if ( $amount <= 0 ) {
-		return new WP_Error( 'invalid_amount', 'Amount must be greater than 0' );
-	}
-
-	// Check if coupon exists
-	$existing = $wpdb->get_var( $wpdb->prepare(
-		"SELECT id FROM {$table} WHERE code = %s",
-		$code
-	) );
-
-	$data = [
-		'code'       => $code,
-		'type'       => $type,
-		'amount'     => $amount,
-		'expires_at' => ! empty( $row['expires_at'] ) ? date( 'Y-m-d H:i:s', strtotime( $row['expires_at'] ) ) : null,
-		'updated_at' => current_time( 'mysql' ),
+function sugarcart_process_post_import_row( array $row ): string|WP_Error {
+	$post_data = [
+		'post_title'   => $row['title'],
+		'post_content' => $row['content'],
+		'post_status'  => $row['status'] ?? 'draft',
+		'post_type'    => 'post',
 	];
 
-	if ( $existing ) {
-		$wpdb->update( $table, $data, [ 'id' => $existing ] );
-
-		return 'updated';
-	} else {
-		$data['created_at'] = current_time( 'mysql' );
-		$wpdb->insert( $table, $data );
-
-		return 'created';
+	// Author is already resolved to a user ID
+	if ( ! empty( $row['author'] ) ) {
+		$post_data['post_author'] = $row['author'];
 	}
+
+	$post_id = wp_insert_post( $post_data, true );
+
+	if ( is_wp_error( $post_id ) ) {
+		return $post_id;
+	}
+
+	// Category is already a term ID
+	if ( ! empty( $row['category'] ) ) {
+		wp_set_post_terms( $post_id, [ $row['category'] ], 'category' );
+	}
+
+	// Tags is already an array of term IDs
+	if ( ! empty( $row['tags'] ) ) {
+		wp_set_post_terms( $post_id, $row['tags'], 'post_tag' );
+	}
+
+	return 'created';
 }
 
 /**
  * Helper: Get Stripe client instance.
  *
- * @return \Stripe\StripeClient
+ * @return object
  */
 function sugarcart_get_stripe_client() {
 	$api_key = get_option( 'sugarcart_stripe_secret_key' );

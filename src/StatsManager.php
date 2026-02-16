@@ -2,12 +2,14 @@
 /**
  * Stats Manager
  *
- * Handles automatic tracking and storage of import/sync statistics.
+ * Handles lightweight tracking of import operation results.
+ * Stores only the last run's stats per operation — no history,
+ * no run counts, no duration tracking.
  *
  * @package     ArrayPress\RegisterImporters
  * @copyright   Copyright (c) 2025, ArrayPress Limited
  * @license     GPL2+
- * @since       1.0.0
+ * @since       2.0.0
  */
 
 declare( strict_types=1 );
@@ -17,45 +19,52 @@ namespace ArrayPress\RegisterImporters;
 /**
  * Class StatsManager
  *
- * Manages statistics storage and retrieval for import/sync operations.
+ * Manages statistics for import operations using transients.
  */
 class StatsManager {
 
 	/**
-	 * Option prefix for stats storage.
+	 * Transient prefix for stats storage.
 	 *
+	 * @since 2.0.0
 	 * @var string
 	 */
-	const OPTION_PREFIX = 'importers_stats_';
+	const TRANSIENT_PREFIX = 'importers_stats_';
 
 	/**
 	 * Maximum number of errors to store per operation.
 	 *
+	 * @since 2.0.0
 	 * @var int
 	 */
-	const MAX_STORED_ERRORS = 50;
+	const MAX_STORED_ERRORS = 20;
 
 	/**
-	 * Maximum number of history entries to keep.
+	 * How long stats persist (7 days).
 	 *
+	 * @since 2.0.0
 	 * @var int
 	 */
-	const MAX_HISTORY_ENTRIES = 20;
+	const STATS_EXPIRATION = WEEK_IN_SECONDS;
 
 	/**
-	 * Get the option key for an operation's stats.
+	 * Get the transient key for an operation's stats.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $page_id      The importer page ID.
 	 * @param string $operation_id The operation ID.
 	 *
 	 * @return string
 	 */
-	public static function get_option_key( string $page_id, string $operation_id ): string {
-		return self::OPTION_PREFIX . sanitize_key( $page_id ) . '_' . sanitize_key( $operation_id );
+	public static function get_transient_key( string $page_id, string $operation_id ): string {
+		return self::TRANSIENT_PREFIX . sanitize_key( $page_id ) . '_' . sanitize_key( $operation_id );
 	}
 
 	/**
 	 * Get stats for an operation.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $page_id      The importer page ID.
 	 * @param string $operation_id The operation ID.
@@ -63,8 +72,12 @@ class StatsManager {
 	 * @return array Stats array with defaults if not found.
 	 */
 	public static function get_stats( string $page_id, string $operation_id ): array {
-		$option_key = self::get_option_key( $page_id, $operation_id );
-		$stats      = get_option( $option_key, [] );
+		$key   = self::get_transient_key( $page_id, $operation_id );
+		$stats = get_transient( $key );
+
+		if ( ! $stats || ! is_array( $stats ) ) {
+			return self::get_default_stats();
+		}
 
 		return wp_parse_args( $stats, self::get_default_stats() );
 	}
@@ -72,53 +85,48 @@ class StatsManager {
 	/**
 	 * Get default stats structure.
 	 *
+	 * @since 2.0.0
+	 *
 	 * @return array
 	 */
 	public static function get_default_stats(): array {
 		return [
-			'last_run'     => null,
-			'last_status'  => null, // 'complete', 'cancelled', 'error'
-			'duration'     => 0,
-			'total'        => 0,
-			'created'      => 0,
-			'updated'      => 0,
-			'skipped'      => 0,
-			'failed'       => 0,
-			'errors'       => [],
-			'history'      => [],
-			'run_count'    => 0,
-			'source_file'  => null, // For imports: original filename
-			'source_total' => null, // For syncs: total items in source (if known)
+			'last_run'    => null,
+			'last_status' => null,
+			'total'       => 0,
+			'created'     => 0,
+			'updated'     => 0,
+			'skipped'     => 0,
+			'failed'      => 0,
+			'errors'      => [],
+			'source_file' => null,
 		];
 	}
 
 	/**
-	 * Initialize stats for a new operation run.
+	 * Initialize stats for a new import run.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string      $page_id      The importer page ID.
 	 * @param string      $operation_id The operation ID.
-	 * @param string|null $source_file  Original filename for imports.
-	 * @param int|null    $total        Total items to process (if known).
+	 * @param string|null $source_file  Original filename.
+	 * @param int|null    $total        Total items to process.
 	 *
 	 * @return array The initialized stats.
 	 */
 	public static function init_run( string $page_id, string $operation_id, ?string $source_file = null, ?int $total = null ): array {
-		$stats = self::get_stats( $page_id, $operation_id );
-
-		// Reset current run stats
-		// Note: We don't set last_status to 'running' here - it will be set on completion
-		// This prevents "stuck" running status if browser closes or JS errors
-		$stats['last_run']     = current_time( 'mysql', true );
-		$stats['duration']     = 0;
-		$stats['total']        = $total ?? 0;
-		$stats['created']      = 0;
-		$stats['updated']      = 0;
-		$stats['skipped']      = 0;
-		$stats['failed']       = 0;
-		$stats['errors']       = [];
-		$stats['source_file']  = $source_file;
-		$stats['source_total'] = $total;
-		$stats['run_count']    = ( $stats['run_count'] ?? 0 ) + 1;
+		$stats = [
+			'last_run'    => current_time( 'mysql', true ),
+			'last_status' => null,
+			'total'       => $total ?? 0,
+			'created'     => 0,
+			'updated'     => 0,
+			'skipped'     => 0,
+			'failed'      => 0,
+			'errors'      => [],
+			'source_file' => $source_file,
+		];
 
 		self::save_stats( $page_id, $operation_id, $stats );
 
@@ -127,6 +135,8 @@ class StatsManager {
 
 	/**
 	 * Update stats after processing a batch.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $page_id      The importer page ID.
 	 * @param string $operation_id The operation ID.
@@ -137,19 +147,12 @@ class StatsManager {
 	public static function update_batch( string $page_id, string $operation_id, array $batch_result ): array {
 		$stats = self::get_stats( $page_id, $operation_id );
 
-		// Increment counters
 		$stats['created'] += $batch_result['created'] ?? 0;
 		$stats['updated'] += $batch_result['updated'] ?? 0;
 		$stats['skipped'] += $batch_result['skipped'] ?? 0;
 		$stats['failed']  += $batch_result['failed'] ?? 0;
 
-		// Update total if provided
-		if ( isset( $batch_result['total'] ) && $batch_result['total'] > 0 ) {
-			$stats['total']        = $batch_result['total'];
-			$stats['source_total'] = $batch_result['total'];
-		}
-
-		// Append errors (limited to MAX_STORED_ERRORS)
+		// Append errors (capped)
 		if ( ! empty( $batch_result['errors'] ) ) {
 			$stats['errors'] = array_merge( $stats['errors'], $batch_result['errors'] );
 			$stats['errors'] = array_slice( $stats['errors'], - self::MAX_STORED_ERRORS );
@@ -161,45 +164,25 @@ class StatsManager {
 	}
 
 	/**
-	 * Complete an operation run.
+	 * Complete an import run.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $page_id      The importer page ID.
 	 * @param string $operation_id The operation ID.
 	 * @param string $status       Final status ('complete', 'cancelled', 'error').
-	 * @param int    $duration     Total duration in seconds.
 	 *
 	 * @return array Final stats.
 	 */
-	public static function complete_run( string $page_id, string $operation_id, string $status = 'complete', int $duration = 0 ): array {
+	public static function complete_run( string $page_id, string $operation_id, string $status = 'complete' ): array {
 		$stats = self::get_stats( $page_id, $operation_id );
 
 		$stats['last_status'] = $status;
-		$stats['duration']    = $duration;
 
-		// Calculate total processed
 		$total_processed = $stats['created'] + $stats['updated'] + $stats['skipped'] + $stats['failed'];
 		if ( $stats['total'] === 0 ) {
 			$stats['total'] = $total_processed;
 		}
-
-		// Add to history
-		$history_entry = [
-			'date'     => $stats['last_run'],
-			'status'   => $status,
-			'duration' => $duration,
-			'total'    => $stats['total'],
-			'created'  => $stats['created'],
-			'updated'  => $stats['updated'],
-			'skipped'  => $stats['skipped'],
-			'failed'   => $stats['failed'],
-		];
-
-		if ( $stats['source_file'] ) {
-			$history_entry['file'] = $stats['source_file'];
-		}
-
-		$stats['history']   = array_slice( $stats['history'], 0, self::MAX_HISTORY_ENTRIES - 1 );
-		$stats['history'][] = $history_entry;
 
 		self::save_stats( $page_id, $operation_id, $stats );
 
@@ -207,41 +190,9 @@ class StatsManager {
 	}
 
 	/**
-	 * Record a single item result.
-	 *
-	 * Helper method for recording individual item processing results.
-	 *
-	 * @param string          $page_id      The importer page ID.
-	 * @param string          $operation_id The operation ID.
-	 * @param string|\WP_Error $result       'created', 'updated', 'skipped', or WP_Error.
-	 * @param string|null     $item_id      Optional item identifier for error logging.
-	 *
-	 * @return void
-	 */
-	public static function record_item( string $page_id, string $operation_id, $result, ?string $item_id = null ): void {
-		$stats = self::get_stats( $page_id, $operation_id );
-
-		if ( is_wp_error( $result ) ) {
-			$stats['failed']++;
-			$stats['errors'][] = [
-				'item'    => $item_id ?? 'Unknown',
-				'message' => $result->get_error_message(),
-				'code'    => $result->get_error_code(),
-			];
-			$stats['errors'] = array_slice( $stats['errors'], - self::MAX_STORED_ERRORS );
-		} elseif ( $result === 'created' ) {
-			$stats['created']++;
-		} elseif ( $result === 'updated' ) {
-			$stats['updated']++;
-		} elseif ( $result === 'skipped' ) {
-			$stats['skipped']++;
-		}
-
-		self::save_stats( $page_id, $operation_id, $stats );
-	}
-
-	/**
 	 * Save stats to the database.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $page_id      The importer page ID.
 	 * @param string $operation_id The operation ID.
@@ -250,13 +201,15 @@ class StatsManager {
 	 * @return bool True on success, false on failure.
 	 */
 	public static function save_stats( string $page_id, string $operation_id, array $stats ): bool {
-		$option_key = self::get_option_key( $page_id, $operation_id );
+		$key = self::get_transient_key( $page_id, $operation_id );
 
-		return update_option( $option_key, $stats, false );
+		return set_transient( $key, $stats, self::STATS_EXPIRATION );
 	}
 
 	/**
 	 * Clear stats for an operation.
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string $page_id      The importer page ID.
 	 * @param string $operation_id The operation ID.
@@ -264,74 +217,15 @@ class StatsManager {
 	 * @return bool True on success.
 	 */
 	public static function clear_stats( string $page_id, string $operation_id ): bool {
-		$option_key = self::get_option_key( $page_id, $operation_id );
+		$key = self::get_transient_key( $page_id, $operation_id );
 
-		return delete_option( $option_key );
-	}
-
-	/**
-	 * Get stats for all operations on a page.
-	 *
-	 * @param string $page_id       The importer page ID.
-	 * @param array  $operation_ids Array of operation IDs.
-	 *
-	 * @return array Associative array of operation_id => stats.
-	 */
-	public static function get_all_stats( string $page_id, array $operation_ids ): array {
-		$all_stats = [];
-
-		foreach ( $operation_ids as $operation_id ) {
-			$all_stats[ $operation_id ] = self::get_stats( $page_id, $operation_id );
-		}
-
-		return $all_stats;
-	}
-
-	/**
-	 * Format duration for display.
-	 *
-	 * @param int $seconds Duration in seconds.
-	 *
-	 * @return string Formatted duration string.
-	 */
-	public static function format_duration( int $seconds ): string {
-		if ( $seconds < 60 ) {
-			return sprintf(
-				_n( '%d second', '%d seconds', $seconds, 'arraypress' ),
-				$seconds
-			);
-		}
-
-		$minutes = floor( $seconds / 60 );
-		$secs    = $seconds % 60;
-
-		if ( $minutes < 60 ) {
-			if ( $secs > 0 ) {
-				return sprintf(
-					__( '%d min %d sec', 'arraypress' ),
-					$minutes,
-					$secs
-				);
-			}
-
-			return sprintf(
-				_n( '%d minute', '%d minutes', $minutes, 'arraypress' ),
-				$minutes
-			);
-		}
-
-		$hours = floor( $minutes / 60 );
-		$mins  = $minutes % 60;
-
-		return sprintf(
-			__( '%d hr %d min', 'arraypress' ),
-			$hours,
-			$mins
-		);
+		return delete_transient( $key );
 	}
 
 	/**
 	 * Get relative time string (e.g., "2 hours ago").
+	 *
+	 * @since 2.0.0
 	 *
 	 * @param string|null $timestamp MySQL timestamp (GMT).
 	 *

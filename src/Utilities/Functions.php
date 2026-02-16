@@ -2,6 +2,8 @@
 /**
  * Helper Functions
  *
+ * Global helper functions for registering and managing CSV importers.
+ *
  * @package     ArrayPress\RegisterImporters
  * @copyright   Copyright (c) 2025, ArrayPress Limited
  * @license     GPL2+
@@ -16,7 +18,9 @@ use ArrayPress\RegisterImporters\StatsManager;
 
 if ( ! function_exists( 'register_importers' ) ) {
 	/**
-	 * Register an importers page.
+	 * Register a CSV importers page.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $id     Unique identifier for this importers page.
 	 * @param array  $config Configuration array.
@@ -36,6 +40,8 @@ if ( ! function_exists( 'get_importer' ) ) {
 	/**
 	 * Get a registered importers page by ID.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @param string $id Importers ID.
 	 *
 	 * @return Importers|null
@@ -45,9 +51,26 @@ if ( ! function_exists( 'get_importer' ) ) {
 	}
 }
 
+if ( ! function_exists( 'importer_exists' ) ) {
+	/**
+	 * Check if an importer page is registered.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $id Importers ID.
+	 *
+	 * @return bool
+	 */
+	function importer_exists( string $id ): bool {
+		return Registry::instance()->has( $id );
+	}
+}
+
 if ( ! function_exists( 'get_importer_stats' ) ) {
 	/**
-	 * Get stats for a specific operation.
+	 * Get stats for a specific import operation.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $page_id      The importer page ID.
 	 * @param string $operation_id The operation ID.
@@ -61,7 +84,9 @@ if ( ! function_exists( 'get_importer_stats' ) ) {
 
 if ( ! function_exists( 'clear_importer_stats' ) ) {
 	/**
-	 * Clear stats for a specific operation.
+	 * Clear stats for a specific import operation.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $page_id      The importer page ID.
 	 * @param string $operation_id The operation ID.
@@ -70,5 +95,20 @@ if ( ! function_exists( 'clear_importer_stats' ) ) {
 	 */
 	function clear_importer_stats( string $page_id, string $operation_id ): bool {
 		return StatsManager::clear_stats( $page_id, $operation_id );
+	}
+}
+
+if ( ! function_exists( 'unregister_importer' ) ) {
+	/**
+	 * Unregister an importer page.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $id Importers ID.
+	 *
+	 * @return bool
+	 */
+	function unregister_importer( string $id ): bool {
+		return Registry::instance()->unregister( $id );
 	}
 }

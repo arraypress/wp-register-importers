@@ -60,6 +60,8 @@ class FileManager {
 	/**
 	 * Get the base upload directory for importers.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @return string
 	 */
 	public static function get_base_dir(): string {
@@ -70,6 +72,8 @@ class FileManager {
 
 	/**
 	 * Get secure upload directory for a specific importer page.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $page_id The importer page ID.
 	 *
@@ -94,18 +98,18 @@ class FileManager {
 	/**
 	 * Protect a directory from direct web access.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @param string $dir Directory path to protect.
 	 *
 	 * @return void
 	 */
 	private static function protect_directory( string $dir ): void {
-		// Create .htaccess for Apache
 		$htaccess_file = trailingslashit( $dir ) . '.htaccess';
 		if ( ! file_exists( $htaccess_file ) ) {
 			file_put_contents( $htaccess_file, "Options -Indexes\ndeny from all\n" );
 		}
 
-		// Create index.php as fallback
 		$index_file = trailingslashit( $dir ) . 'index.php';
 		if ( ! file_exists( $index_file ) ) {
 			file_put_contents( $index_file, '<?php // Silence is golden' );
@@ -114,6 +118,8 @@ class FileManager {
 
 	/**
 	 * Handle file upload with secure naming.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $page_id    The importer page ID.
 	 * @param string $field_name The form field name (default: 'import_file').
@@ -205,6 +211,8 @@ class FileManager {
 	/**
 	 * Get allowed MIME types for CSV uploads.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @return array Associative array of extension => mime type.
 	 */
 	public static function get_allowed_mimes(): array {
@@ -215,6 +223,8 @@ class FileManager {
 
 	/**
 	 * Get file metadata by UUID.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $uuid The file UUID.
 	 *
@@ -239,6 +249,8 @@ class FileManager {
 
 	/**
 	 * Read a batch of rows from a CSV file.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $uuid   The file UUID.
 	 * @param int    $offset Starting row (0-indexed, after header).
@@ -277,11 +289,9 @@ class FileManager {
 
 		// Read batch
 		while ( count( $rows ) < $limit && ( $row = fgetcsv( $handle ) ) !== false ) {
-			// Create associative array with headers as keys
 			if ( count( $row ) === count( $headers ) ) {
 				$rows[] = array_combine( $headers, $row );
 			} else {
-				// Handle row with different column count
 				$rows[] = $row;
 			}
 			$current ++;
@@ -300,7 +310,54 @@ class FileManager {
 	}
 
 	/**
+	 * Read all rows from a CSV file.
+	 *
+	 * Used for pre-import validation (duplicate checking, dry runs).
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param string $uuid The file UUID.
+	 *
+	 * @return array|WP_Error Array of all rows or WP_Error on failure.
+	 */
+	public static function read_all_rows( string $uuid ) {
+		$file_data = self::get_file( $uuid );
+
+		if ( ! $file_data ) {
+			return new WP_Error(
+				'file_not_found',
+				__( 'Import file not found or expired.', 'arraypress' )
+			);
+		}
+
+		$filepath = $file_data['path'];
+		$handle   = fopen( $filepath, 'r' );
+
+		if ( ! $handle ) {
+			return new WP_Error(
+				'file_read_error',
+				__( 'Unable to read the import file.', 'arraypress' )
+			);
+		}
+
+		$rows    = [];
+		$headers = fgetcsv( $handle );
+
+		while ( ( $row = fgetcsv( $handle ) ) !== false ) {
+			if ( count( $row ) === count( $headers ) ) {
+				$rows[] = array_combine( $headers, $row );
+			}
+		}
+
+		fclose( $handle );
+
+		return $rows;
+	}
+
+	/**
 	 * Get preview rows from a CSV file.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $uuid     The file UUID.
 	 * @param int    $max_rows Maximum rows to preview (default: 5).
@@ -346,6 +403,8 @@ class FileManager {
 	/**
 	 * Delete a file by UUID.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @param string $uuid The file UUID.
 	 *
 	 * @return bool True on success, false on failure.
@@ -365,7 +424,7 @@ class FileManager {
 	/**
 	 * Cleanup expired files.
 	 *
-	 * Removes files older than MAX_FILE_AGE.
+	 * @since 1.0.0
 	 *
 	 * @return int Number of files deleted.
 	 */
@@ -399,6 +458,8 @@ class FileManager {
 	/**
 	 * Count data rows in a CSV file (excluding header).
 	 *
+	 * @since 1.0.0
+	 *
 	 * @param string $filepath Path to the CSV file.
 	 *
 	 * @return int Number of data rows.
@@ -414,12 +475,13 @@ class FileManager {
 			fclose( $handle );
 		}
 
-		// Subtract 1 for header row, ensure non-negative
 		return max( 0, $count - 1 );
 	}
 
 	/**
 	 * Get CSV headers from a file.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $filepath Path to the CSV file.
 	 *
@@ -441,6 +503,8 @@ class FileManager {
 	/**
 	 * Get the MIME type of a file.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @param string $filepath Path to the file.
 	 *
 	 * @return string MIME type.
@@ -454,7 +518,6 @@ class FileManager {
 			return $mime_type;
 		}
 
-		// Fallback to mime_content_type
 		if ( function_exists( 'mime_content_type' ) ) {
 			return mime_content_type( $filepath );
 		}
@@ -464,6 +527,8 @@ class FileManager {
 
 	/**
 	 * Get human-readable upload error message.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param int $error_code PHP upload error code.
 	 *

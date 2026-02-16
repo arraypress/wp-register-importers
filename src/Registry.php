@@ -36,6 +36,8 @@ class Registry {
 	/**
 	 * Get singleton instance.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @return Registry
 	 */
 	public static function instance(): Registry {
@@ -55,6 +57,8 @@ class Registry {
 	/**
 	 * Register an importers instance.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @param string    $id        Unique identifier.
 	 * @param Importers $importers Importers instance.
 	 *
@@ -67,6 +71,8 @@ class Registry {
 	/**
 	 * Get a registered importers page.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @param string $id Importers ID.
 	 *
 	 * @return Importers|null
@@ -77,6 +83,8 @@ class Registry {
 
 	/**
 	 * Check if an importers page is registered.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $id Importers ID.
 	 *
@@ -89,6 +97,8 @@ class Registry {
 	/**
 	 * Get all registered importers pages.
 	 *
+	 * @since 1.0.0
+	 *
 	 * @return array<string, Importers>
 	 */
 	public function all(): array {
@@ -97,6 +107,8 @@ class Registry {
 
 	/**
 	 * Unregister an importers page.
+	 *
+	 * @since 1.0.0
 	 *
 	 * @param string $id Importers ID.
 	 *
