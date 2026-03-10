@@ -1,6 +1,6 @@
 {
   "name": "arraypress/wp-register-importers",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "WordPress library for registering CSV import operations with batch processing, field mapping, validation, and progress tracking.",
   "homepage": "https://github.com/arraypress/wp-register-importers/",
   "type": "library",
@@ -13,7 +13,10 @@
   ],
   "require": {
     "php": ">=8.1",
-    "arraypress/wp-composer-assets": "dev-main"
+    "arraypress/wp-composer-assets": "dev-main",
+    "arraypress/wp-countries": "dev-main",
+    "arraypress/wp-currencies": "dev-main",
+    "arraypress/wp-date-utils": "dev-main"
   },
   "autoload": {
     "psr-4": {

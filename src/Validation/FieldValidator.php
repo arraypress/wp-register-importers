@@ -15,6 +15,9 @@ declare( strict_types=1 );
 
 namespace ArrayPress\RegisterImporters\Validation;
 
+use ArrayPress\Countries\Countries;
+use ArrayPress\Currencies\Currency;
+use ArrayPress\DateUtils\Dates;
 use WP_Error;
 
 /**
@@ -26,10 +29,11 @@ use WP_Error;
  * 1. Trim whitespace
  * 2. Apply default value (if empty)
  * 3. Transform (uppercase, lowercase)
- * 4. Type cast (number, integer, boolean)
- * 5. Built-in validation (required, minimum, maximum, etc.)
- * 6. Custom validate_callback
- * 7. Custom process_callback / WordPress type resolution
+ * 4. Split by separator (if configured)
+ * 5. Type cast (number, integer, boolean, etc.)
+ * 6. Built-in validation (required, minimum, maximum, etc.)
+ * 7. Custom validate_callback
+ * 8. Custom process_callback / WordPress type resolution
  */
 class FieldValidator {
 
@@ -39,7 +43,18 @@ class FieldValidator {
 	 * @since 2.0.0
 	 * @var array
 	 */
-	const SCALAR_TYPES = [ 'string', 'number', 'integer', 'boolean', 'url', 'email', 'currency' ];
+	const SCALAR_TYPES = [
+		'string',
+		'number',
+		'integer',
+		'boolean',
+		'url',
+		'email',
+		'currency',
+		'country',
+		'date',
+		'datetime'
+	];
 
 	/**
 	 * WordPress entity types that resolve to IDs.
@@ -50,41 +65,16 @@ class FieldValidator {
 	const WP_TYPES = [ 'post', 'term', 'user', 'attachment' ];
 
 	/**
-	 * Valid ISO 4217 currency codes.
-	 *
-	 * @since 2.0.0
-	 * @var array
-	 */
-	const CURRENCY_CODES = [
-		'AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG', 'AZN',
-		'BAM', 'BBD', 'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BRL',
-		'BSD', 'BTN', 'BWP', 'BYN', 'BZD', 'CAD', 'CDF', 'CHF', 'CLP', 'CNY',
-		'COP', 'CRC', 'CUP', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP', 'DZD', 'EGP',
-		'ERN', 'ETB', 'EUR', 'FJD', 'FKP', 'GBP', 'GEL', 'GHS', 'GIP', 'GMD',
-		'GNF', 'GTQ', 'GYD', 'HKD', 'HNL', 'HRK', 'HTG', 'HUF', 'IDR', 'ILS',
-		'INR', 'IQD', 'IRR', 'ISK', 'JMD', 'JOD', 'JPY', 'KES', 'KGS', 'KHR',
-		'KMF', 'KPW', 'KRW', 'KWD', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD',
-		'LSL', 'LYD', 'MAD', 'MDL', 'MGA', 'MKD', 'MMK', 'MNT', 'MOP', 'MRU',
-		'MUR', 'MVR', 'MWK', 'MXN', 'MYR', 'MZN', 'NAD', 'NGN', 'NIO', 'NOK',
-		'NPR', 'NZD', 'OMR', 'PAB', 'PEN', 'PGK', 'PHP', 'PKR', 'PLN', 'PYG',
-		'QAR', 'RON', 'RSD', 'RUB', 'RWF', 'SAR', 'SBD', 'SCR', 'SDG', 'SEK',
-		'SGD', 'SHP', 'SLE', 'SOS', 'SRD', 'SSP', 'STN', 'SVC', 'SYP', 'SZL',
-		'THB', 'TJS', 'TMT', 'TND', 'TOP', 'TRY', 'TTD', 'TWD', 'TZS', 'UAH',
-		'UGX', 'USD', 'UYU', 'UZS', 'VES', 'VND', 'VUV', 'WST', 'XAF', 'XCD',
-		'XOF', 'XPF', 'YER', 'ZAR', 'ZMW', 'ZWL',
-	];
-
-	/**
 	 * Process a single field value through the full validation pipeline.
 	 *
-	 * @since 2.0.0
-	 *
-	 * @param string $key        The field key.
-	 * @param mixed  $value      The raw value from CSV.
-	 * @param array  $field      The field definition.
-	 * @param array  $row        The full mapped row (for cross-field references).
+	 * @param string $key   The field key.
+	 * @param mixed  $value The raw value from CSV.
+	 * @param array  $field The field definition.
+	 * @param array  $row   The full mapped row (for cross-field references).
 	 *
 	 * @return mixed|WP_Error The processed value or WP_Error on failure.
+	 * @since 2.0.0
+	 *
 	 */
 	public static function process_field( string $key, $value, array $field, array $row = [] ) {
 		$type = $field['type'] ?? 'string';
@@ -109,7 +99,7 @@ class FieldValidator {
 
 		// Step 5: Type cast (scalar types only)
 		if ( in_array( $type, self::SCALAR_TYPES, true ) && ! is_array( $value ) ) {
-			$value = self::cast_type( $value, $type );
+			$value = self::cast_type( $value, $type, $field );
 		}
 
 		// Step 6: Built-in validation
@@ -153,12 +143,12 @@ class FieldValidator {
 	/**
 	 * Process an entire row through field validation.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param array $row    The mapped row data.
 	 * @param array $fields The field definitions.
 	 *
 	 * @return array|WP_Error The processed row or WP_Error on first failure.
+	 * @since 2.0.0
+	 *
 	 */
 	public static function process_row( array $row, array $fields ): array|WP_Error {
 		$processed = [];
@@ -183,12 +173,12 @@ class FieldValidator {
 	 * Runs all validation steps but skips process_callback and
 	 * WordPress type resolution to avoid side effects.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param array $row    The mapped row data.
 	 * @param array $fields The field definitions.
 	 *
 	 * @return true|WP_Error True if valid, WP_Error on first failure.
+	 * @since 2.0.0
+	 *
 	 */
 	public static function validate_row( array $row, array $fields ) {
 		foreach ( $fields as $key => $field ) {
@@ -215,7 +205,7 @@ class FieldValidator {
 
 			// Type cast
 			if ( in_array( $type, self::SCALAR_TYPES, true ) && ! is_array( $value ) ) {
-				$value = self::cast_type( $value, $type );
+				$value = self::cast_type( $value, $type, $field );
 			}
 
 			// Built-in validation
@@ -239,12 +229,12 @@ class FieldValidator {
 	/**
 	 * Check for duplicate values within a dataset for fields marked as unique.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param array $rows   All rows to check.
 	 * @param array $fields Field definitions.
 	 *
 	 * @return array Array of errors, empty if no duplicates found.
+	 * @since 2.0.0
+	 *
 	 */
 	public static function check_duplicates( array $rows, array $fields ): array {
 		$errors     = [];
@@ -291,12 +281,12 @@ class FieldValidator {
 	/**
 	 * Apply transformation rules to a value.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed $value The value to transform.
 	 * @param array $field The field definition.
 	 *
 	 * @return mixed The transformed value.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function apply_transforms( $value, array $field ) {
 		if ( ! is_string( $value ) || $value === '' ) {
@@ -317,12 +307,12 @@ class FieldValidator {
 	/**
 	 * Split a string value by separator into an array.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param string $value     The value to split.
 	 * @param string $separator The separator character(s).
 	 *
 	 * @return array Array of trimmed, non-empty values.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function split_value( string $value, string $separator ): array {
 		// If separator contains multiple characters, try each one
@@ -343,14 +333,15 @@ class FieldValidator {
 	/**
 	 * Cast a value to the specified scalar type.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed  $value The value to cast.
 	 * @param string $type  The target type.
+	 * @param array  $field The field definition (for type-specific options).
 	 *
 	 * @return mixed The cast value.
+	 * @since 2.0.0
+	 *
 	 */
-	private static function cast_type( $value, string $type ) {
+	private static function cast_type( $value, string $type, array $field = [] ) {
 		if ( $value === null || $value === '' ) {
 			return $value;
 		}
@@ -372,6 +363,15 @@ class FieldValidator {
 			case 'currency':
 				return strtoupper( trim( (string) $value ) );
 
+			case 'country':
+				return strtoupper( trim( (string) $value ) );
+
+			case 'date':
+				return self::cast_date( (string) $value, $field );
+
+			case 'datetime':
+				return self::cast_datetime( (string) $value, $field );
+
 			case 'url':
 			case 'email':
 			case 'string':
@@ -385,11 +385,11 @@ class FieldValidator {
 	 *
 	 * Handles common truthy/falsy strings from CSV data.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed $value The value to cast.
 	 *
 	 * @return bool
+	 * @since 2.0.0
+	 *
 	 */
 	private static function cast_boolean( $value ): bool {
 		if ( is_bool( $value ) ) {
@@ -401,18 +401,86 @@ class FieldValidator {
 		return in_array( strtolower( trim( (string) $value ) ), $truthy, true );
 	}
 
+	/**
+	 * Cast a value to a date string (Y-m-d).
+	 *
+	 * Accepts flexible input formats (2025-01-15, 01/15/2025, Jan 15 2025, etc.)
+	 * and normalizes to Y-m-d. No timezone conversion is applied — the value is
+	 * parsed and reformatted as-is. Use your process_callback to handle any
+	 * UTC conversion via Dates::to_utc() if needed.
+	 *
+	 * If a date_format is specified in the field definition, enforces that exact
+	 * input format before parsing.
+	 *
+	 * @param string $value The raw date string from CSV.
+	 * @param array  $field The field definition.
+	 *
+	 * @return string|mixed The normalized date string or original value if unparseable.
+	 * @since 2.1.0
+	 *
+	 */
+	private static function cast_date( string $value, array $field ) {
+		// If a specific input format is required, validate strictly
+		if ( ! empty( $field['date_format'] ) ) {
+			if ( ! Dates::is_format( $value, $field['date_format'] ) ) {
+				return $value; // Let validation catch the error
+			}
+		}
+
+		$parsed = strtotime( $value );
+		if ( $parsed === false ) {
+			return $value; // Let validation catch it
+		}
+
+		return gmdate( 'Y-m-d', $parsed );
+	}
+
+	/**
+	 * Cast a value to a datetime string (Y-m-d H:i:s).
+	 *
+	 * Accepts flexible input formats and normalizes to Y-m-d H:i:s. No timezone
+	 * conversion is applied — the value is parsed and reformatted as-is. Use
+	 * your process_callback to handle any UTC conversion via Dates::to_utc()
+	 * if needed.
+	 *
+	 * If a date_format is specified in the field definition, enforces that exact
+	 * input format before parsing.
+	 *
+	 * @param string $value The raw datetime string from CSV.
+	 * @param array  $field The field definition.
+	 *
+	 * @return string|mixed The normalized datetime string or original value if unparseable.
+	 * @since 2.1.0
+	 *
+	 */
+	private static function cast_datetime( string $value, array $field ) {
+		// If a specific input format is required, validate strictly
+		if ( ! empty( $field['date_format'] ) ) {
+			if ( ! Dates::is_format( $value, $field['date_format'] ) ) {
+				return $value; // Let validation catch the error
+			}
+		}
+
+		$parsed = strtotime( $value );
+		if ( $parsed === false ) {
+			return $value; // Let validation catch it
+		}
+
+		return gmdate( 'Y-m-d H:i:s', $parsed );
+	}
+
 	/** Validation **************************************************************/
 
 	/**
 	 * Run built-in validation rules against a field value.
-	 *
-	 * @since 2.0.0
 	 *
 	 * @param string $key   The field key.
 	 * @param mixed  $value The value to validate.
 	 * @param array  $field The field definition.
 	 *
 	 * @return true|WP_Error True if valid, WP_Error on failure.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function validate_field( string $key, $value, array $field ) {
 		$label = $field['label'] ?? $key;
@@ -472,10 +540,61 @@ class FieldValidator {
 				break;
 
 			case 'currency':
-				if ( ! in_array( strtoupper( (string) $value ), self::CURRENCY_CODES, true ) ) {
+				if ( ! Currency::is_supported( (string) $value ) ) {
 					return new WP_Error(
 						'invalid_currency',
 						sprintf( __( '%s must be a valid ISO 4217 currency code (e.g., USD, EUR, GBP).', 'arraypress' ), $label )
+					);
+				}
+				break;
+
+			case 'country':
+				if ( ! Countries::exists( (string) $value ) ) {
+					return new WP_Error(
+						'invalid_country',
+						sprintf( __( '%s must be a valid ISO 3166-1 alpha-2 country code (e.g., US, GB, DE).', 'arraypress' ), $label )
+					);
+				}
+				break;
+
+			case 'date':
+				if ( ! Dates::is_valid( (string) $value ) ) {
+					return new WP_Error(
+						'invalid_date',
+						sprintf( __( '%s must be a valid date.', 'arraypress' ), $label )
+					);
+				}
+
+				// If a specific format was required but casting left value unchanged, it failed
+				if ( ! empty( $field['date_format'] ) && ! Dates::is_format( (string) $value, 'Y-m-d' ) ) {
+					return new WP_Error(
+						'invalid_date_format',
+						sprintf(
+							__( '%s must match the format %s.', 'arraypress' ),
+							$label,
+							$field['date_format']
+						)
+					);
+				}
+				break;
+
+			case 'datetime':
+				if ( ! Dates::is_valid( (string) $value ) ) {
+					return new WP_Error(
+						'invalid_datetime',
+						sprintf( __( '%s must be a valid date and time.', 'arraypress' ), $label )
+					);
+				}
+
+				// If a specific format was required but casting left value unchanged, it failed
+				if ( ! empty( $field['date_format'] ) && ! Dates::is_format( (string) $value, 'Y-m-d H:i:s' ) ) {
+					return new WP_Error(
+						'invalid_datetime_format',
+						sprintf(
+							__( '%s must match the format %s.', 'arraypress' ),
+							$label,
+							$field['date_format']
+						)
 					);
 				}
 				break;
@@ -575,12 +694,12 @@ class FieldValidator {
 	 * Handles post, term, user, and attachment lookups with optional
 	 * auto-creation for terms.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed $value The value to resolve (string or array for separator fields).
 	 * @param array $field The field definition.
 	 *
 	 * @return mixed Resolved ID(s) or WP_Error on failure.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function resolve_wp_type( $value, array $field ) {
 		if ( $value === null || $value === '' ) {
@@ -615,12 +734,12 @@ class FieldValidator {
 	 * - user: id → email → login → slug
 	 * - attachment: id → url → filename
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed $value The value to resolve.
 	 * @param array $field The field definition.
 	 *
 	 * @return int|WP_Error The entity ID or WP_Error.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function resolve_single_wp_entity( $value, array $field ): int|WP_Error {
 		$type     = $field['type'];
@@ -655,14 +774,14 @@ class FieldValidator {
 	 * When match_by is 'identifier', cascades: id → slug → title.
 	 * When a specific match_by is given, only that method is tried.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed  $value    The value to match.
 	 * @param array  $field    The field definition.
 	 * @param string $match_by How to match (identifier, title, slug, id, meta).
 	 * @param string $label    The field label for error messages.
 	 *
 	 * @return int|WP_Error The post ID or WP_Error.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function resolve_post( $value, array $field, string $match_by, string $label ): int|WP_Error {
 		$post_type   = $field['post_type'] ?? 'post';
@@ -722,14 +841,14 @@ class FieldValidator {
 	/**
 	 * Try to resolve a post by a specific method.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed  $value     The value to match.
 	 * @param string $match_by  The specific method (id, slug, title, meta).
 	 * @param array  $field     The field definition.
 	 * @param array  $base_args Base get_posts arguments.
 	 *
 	 * @return int|WP_Error|null Post ID, WP_Error for config issues, or null if not found.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function resolve_post_by( $value, string $match_by, array $field, array $base_args ): int|WP_Error|null {
 		switch ( $match_by ) {
@@ -781,8 +900,6 @@ class FieldValidator {
 	 * When a specific match_by is given, only that method is tried.
 	 * If create is true and term is not found, creates it.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed  $value    The value to match.
 	 * @param array  $field    The field definition.
 	 * @param string $match_by How to match (identifier, name, slug, id).
@@ -790,6 +907,8 @@ class FieldValidator {
 	 * @param string $label    The field label for error messages.
 	 *
 	 * @return int|WP_Error The term ID or WP_Error.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function resolve_term( $value, array $field, string $match_by, bool $create, string $label ): int|WP_Error {
 		$taxonomy = $field['taxonomy'] ?? 'category';
@@ -860,13 +979,13 @@ class FieldValidator {
 	 * When match_by is 'identifier', cascades: id → email → login → slug.
 	 * When a specific match_by is given, only that method is tried.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed  $value    The value to match.
 	 * @param string $match_by How to match (identifier, email, login, id, slug).
 	 * @param string $label    The field label for error messages.
 	 *
 	 * @return int|WP_Error The user ID or WP_Error.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function resolve_user( $value, string $match_by, string $label ): int|WP_Error {
 		$user = null;
@@ -923,14 +1042,14 @@ class FieldValidator {
 	 * When a specific match_by is given, only that method is tried.
 	 * Supports sideloading remote URLs when the 'sideload' option is enabled.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param mixed  $value    The value to match.
 	 * @param array  $field    The field definition.
 	 * @param string $match_by How to match (identifier, url, id, filename).
 	 * @param string $label    The field label for error messages.
 	 *
 	 * @return int|WP_Error The attachment ID or WP_Error.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function resolve_attachment( $value, array $field, string $match_by, string $label ): int|WP_Error {
 		$sideload = ! empty( $field['sideload'] );
@@ -1006,11 +1125,11 @@ class FieldValidator {
 	/**
 	 * Find an attachment by filename.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param string $filename The filename to search for.
 	 *
 	 * @return int|null The attachment ID or null.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function resolve_attachment_by_filename( string $filename ): ?int {
 		global $wpdb;
@@ -1028,11 +1147,11 @@ class FieldValidator {
 	/**
 	 * Sideload a remote image into the WordPress media library.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param string $url The remote image URL.
 	 *
 	 * @return int|WP_Error The attachment ID or WP_Error.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function sideload_image( string $url ): int|WP_Error {
 		if ( ! function_exists( 'media_sideload_image' ) ) {
@@ -1058,11 +1177,11 @@ class FieldValidator {
 	 * Creates a CSV string with headers and one example row
 	 * based on field types, defaults, and options.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param array $fields The field definitions.
 	 *
 	 * @return string CSV content string.
+	 * @since 2.0.0
+	 *
 	 */
 	public static function generate_sample_csv( array $fields ): string {
 		$headers  = [];
@@ -1088,12 +1207,12 @@ class FieldValidator {
 	/**
 	 * Generate an example value for a field.
 	 *
-	 * @since 2.0.0
-	 *
 	 * @param string $key   The field key.
 	 * @param array  $field The field definition.
 	 *
 	 * @return string The example value.
+	 * @since 2.0.0
+	 *
 	 */
 	private static function get_example_value( string $key, array $field ): string {
 		// Use default if set
@@ -1122,14 +1241,20 @@ class FieldValidator {
 				return 'https://example.com/image.jpg';
 			case 'currency':
 				return 'USD';
+			case 'country':
+				return 'US';
+			case 'date':
+				return '2025-01-15';
+			case 'datetime':
+				return '2025-01-15 14:30:00';
 			case 'post':
-				return $field['match_by'] === 'title' ? 'My Post Title' : '1';
+				return ( $field['match_by'] ?? '' ) === 'title' ? 'My Post Title' : '1';
 			case 'term':
-				return $field['match_by'] === 'name' ? 'Category Name' : '1';
+				return ( $field['match_by'] ?? '' ) === 'name' ? 'Category Name' : '1';
 			case 'user':
-				return $field['match_by'] === 'email' ? 'user@example.com' : '1';
+				return ( $field['match_by'] ?? '' ) === 'email' ? 'user@example.com' : '1';
 			case 'attachment':
-				return $field['match_by'] === 'url' ? 'https://example.com/image.jpg' : '1';
+				return ( $field['match_by'] ?? '' ) === 'url' ? 'https://example.com/image.jpg' : '1';
 		}
 
 		// Key-based guesses
@@ -1148,6 +1273,12 @@ class FieldValidator {
 		}
 		if ( str_contains( $key_lower, 'price' ) || str_contains( $key_lower, 'amount' ) ) {
 			return '9.99';
+		}
+		if ( str_contains( $key_lower, 'country' ) ) {
+			return 'US';
+		}
+		if ( str_contains( $key_lower, 'date' ) ) {
+			return '2025-01-15';
 		}
 
 		return 'Example';
