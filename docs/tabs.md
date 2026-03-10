@@ -28,10 +28,10 @@ register_importers( 'my-plugin', [
 
 ## Tab Options
 
-| Key | Type | Description |
-|---|---|---|
-| `label` | string | Tab display text |
-| `icon` | string | Dashicon class (e.g. `'dashicons-cart'`) |
+| Key               | Type     | Description                                                        |
+|-------------------|----------|--------------------------------------------------------------------|
+| `label`           | string   | Tab display text                                                   |
+| `icon`            | string   | Dashicon class (e.g. `'dashicons-cart'`)                           |
 | `render_callback` | callable | Optional custom render function (replaces default operation cards) |
 
 ## Behavior

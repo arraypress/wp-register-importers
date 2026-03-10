@@ -37,6 +37,7 @@ $stats = get_importer_stats( string $page_id, string $operation_id ): array;
 ```
 
 Returns:
+
 ```php
 [
     'last_run'    => '2025-01-15 10:30:00',  // or null

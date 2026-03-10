@@ -4,16 +4,17 @@ Transforms modify field values before validation and type casting.
 
 ## Reference
 
-| Key | Type | Description |
-|---|---|---|
-| `uppercase` | bool | Convert value to uppercase |
-| `lowercase` | bool | Convert value to lowercase |
+| Key         | Type   | Description                              |
+|-------------|--------|------------------------------------------|
+| `uppercase` | bool   | Convert value to uppercase               |
+| `lowercase` | bool   | Convert value to lowercase               |
 | `separator` | string | Split value into array by this delimiter |
-| `default` | mixed | Default value when the CSV cell is empty |
+| `default`   | mixed  | Default value when the CSV cell is empty |
 
 ## Uppercase / Lowercase
 
-Applied before type casting, so a `currency` field with `uppercase` is redundant (currency auto-uppercases), but useful for plain string fields.
+Applied before type casting, so a `currency` field with `uppercase` is redundant (currency auto-uppercases), but useful
+for plain string fields.
 
 ```php
 'sku' => [
@@ -30,7 +31,8 @@ Applied before type casting, so a `currency` field with `uppercase` is redundant
 
 ## Default
 
-Applied when the CSV cell is empty. The default value then passes through the rest of the pipeline (casting, validation, etc.).
+Applied when the CSV cell is empty. The default value then passes through the rest of the pipeline (casting, validation,
+etc.).
 
 ```php
 'currency' => [

@@ -4,18 +4,18 @@ Scalar types validate format and cast values to the appropriate PHP type.
 
 ## Reference
 
-| Type | Casts to | Validates |
-|---|---|---|
-| `string` | string | No additional validation |
-| `number` | float | Checks `is_numeric`, strips currency symbols and commas |
-| `integer` | int | Checks `is_numeric`, strips commas |
-| `boolean` | bool | Accepts: `true`, `false`, `yes`, `no`, `1`, `0`, `on`, `off`, `y` |
-| `email` | string | Validates with `is_email()` |
-| `url` | string | Validates with `filter_var(FILTER_VALIDATE_URL)` |
-| `currency` | string (uppercase) | Validates against all Stripe-supported ISO 4217 codes via `arraypress/wp-currencies` |
-| `country` | string (uppercase) | Validates against ISO 3166-1 alpha-2 codes via `arraypress/wp-countries` |
-| `date` | string (Y-m-d) | Validates parseable date, normalizes flexible formats |
-| `datetime` | string (Y-m-d H:i:s) | Validates parseable datetime, normalizes flexible formats |
+| Type       | Casts to             | Validates                                                                            |
+|------------|----------------------|--------------------------------------------------------------------------------------|
+| `string`   | string               | No additional validation                                                             |
+| `number`   | float                | Checks `is_numeric`, strips currency symbols and commas                              |
+| `integer`  | int                  | Checks `is_numeric`, strips commas                                                   |
+| `boolean`  | bool                 | Accepts: `true`, `false`, `yes`, `no`, `1`, `0`, `on`, `off`, `y`                    |
+| `email`    | string               | Validates with `is_email()`                                                          |
+| `url`      | string               | Validates with `filter_var(FILTER_VALIDATE_URL)`                                     |
+| `currency` | string (uppercase)   | Validates against all Stripe-supported ISO 4217 codes via `arraypress/wp-currencies` |
+| `country`  | string (uppercase)   | Validates against ISO 3166-1 alpha-2 codes via `arraypress/wp-countries`             |
+| `date`     | string (Y-m-d)       | Validates parseable date, normalizes flexible formats                                |
+| `datetime` | string (Y-m-d H:i:s) | Validates parseable datetime, normalizes flexible formats                            |
 
 ## string
 
@@ -94,7 +94,8 @@ Validates with `filter_var(FILTER_VALIDATE_URL)`.
 
 ## currency
 
-Validates against all Stripe-supported ISO 4217 currency codes using the `arraypress/wp-currencies` library. Automatically uppercased.
+Validates against all Stripe-supported ISO 4217 currency codes using the `arraypress/wp-currencies` library.
+Automatically uppercased.
 
 ```php
 'currency' => [
@@ -108,7 +109,8 @@ Accepts: `USD`, `EUR`, `GBP`, `JPY`, `CAD`, and 130+ other Stripe-supported code
 
 ## country
 
-Validates against ISO 3166-1 alpha-2 country codes using the `arraypress/wp-countries` library. Automatically uppercased.
+Validates against ISO 3166-1 alpha-2 country codes using the `arraypress/wp-countries` library. Automatically
+uppercased.
 
 ```php
 'country_code' => [
@@ -122,7 +124,8 @@ Accepts: `US`, `GB`, `DE`, `FR`, `JP`, and 240+ other codes.
 
 ## date
 
-Accepts flexible input formats and normalizes to `Y-m-d`. Uses `strtotime()` for parsing, so formats like `2025-01-15`, `01/15/2025`, `Jan 15, 2025`, and `15 January 2025` all work.
+Accepts flexible input formats and normalizes to `Y-m-d`. Uses `strtotime()` for parsing, so formats like `2025-01-15`,
+`01/15/2025`, `Jan 15, 2025`, and `15 January 2025` all work.
 
 ```php
 'publish_date' => [
@@ -142,7 +145,8 @@ To enforce a specific input format:
 ],
 ```
 
-No timezone conversion is applied. The value is parsed and normalized as-is. Handle UTC conversion in your `process_callback` if needed.
+No timezone conversion is applied. The value is parsed and normalized as-is. Handle UTC conversion in your
+`process_callback` if needed.
 
 ## datetime
 

@@ -2,12 +2,12 @@
 
 Entity types resolve CSV values to WordPress object IDs. The resolved ID is what your `process_callback` receives.
 
-| Type | Resolves to | `match_by` options |
-|---|---|---|
-| `post` | Post ID (int) | `identifier`, `title`, `slug`, `id`, `meta` |
-| `term` | Term ID (int) | `identifier`, `name`, `slug`, `id` |
-| `user` | User ID (int) | `identifier`, `email`, `login`, `id`, `slug` |
-| `attachment` | Attachment ID (int) | `identifier`, `url`, `id`, `filename` |
+| Type         | Resolves to         | `match_by` options                           |
+|--------------|---------------------|----------------------------------------------|
+| `post`       | Post ID (int)       | `identifier`, `title`, `slug`, `id`, `meta`  |
+| `term`       | Term ID (int)       | `identifier`, `name`, `slug`, `id`           |
+| `user`       | User ID (int)       | `identifier`, `email`, `login`, `id`, `slug` |
+| `attachment` | Attachment ID (int) | `identifier`, `url`, `id`, `filename`        |
 
 ## The `identifier` Mode (Default)
 
@@ -105,6 +105,7 @@ With separator for multiple files:
 
 ## Non-Required Entity Fields
 
-When a WordPress entity type field is **not required** and the entity is not found, the field returns `null` instead of failing the row. This allows optional lookups.
+When a WordPress entity type field is **not required** and the entity is not found, the field returns `null` instead of
+failing the row. This allows optional lookups.
 
 When the field **is required** and the entity is not found, the row fails with a descriptive error.

@@ -1,6 +1,7 @@
 # Field Groups
 
-Fields can be visually grouped in the mapping UI using the `group` key. Groups appear as labelled separators in the field mapping step.
+Fields can be visually grouped in the mapping UI using the `group` key. Groups appear as labelled separators in the
+field mapping step.
 
 ```php
 'fields' => [
@@ -12,4 +13,5 @@ Fields can be visually grouped in the mapping UI using the `group` key. Groups a
 ],
 ```
 
-Groups are purely visual — they affect how fields are displayed in the mapping step but have no effect on processing or validation. Fields without a `group` are displayed without a separator.
+Groups are purely visual — they affect how fields are displayed in the mapping step but have no effect on processing or
+validation. Fields without a `group` are displayed without a separator.

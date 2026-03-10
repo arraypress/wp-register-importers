@@ -1,6 +1,7 @@
 # Operations
 
-Each operation represents one import type (e.g. "Import Products", "Import Customers"). Operations are defined as an associative array within the `operations` key.
+Each operation represents one import type (e.g. "Import Products", "Import Customers"). Operations are defined as an
+associative array within the `operations` key.
 
 ```php
 'operations' => [
@@ -23,20 +24,20 @@ Each operation represents one import type (e.g. "Import Products", "Import Custo
 
 ## Options Reference
 
-| Key | Type | Default | Description |
-|---|---|---|---|
-| `title` | string | Auto-generated from key | Display title for the import card |
-| `description` | string | `''` | Description shown below the title |
-| `tab` | string | First tab | Which tab this operation belongs to |
-| `icon` | string | `'dashicons-upload'` | Dashicon class for the card icon |
-| `batch_size` | int | `100` | Rows processed per AJAX request |
-| `max_file_size` | int | `0` | Max upload size in bytes (0 = unlimited) |
-| `skip_empty_rows` | bool | `true` | Skip rows where all values are empty |
-| `fields` | array | `[]` | Field definitions (see [Field Types](fields/overview.md)) |
-| `validate_callback` | callable | `null` | Operation-level row validation |
-| `process_callback` | callable | *required* | Row processing function |
-| `before_import` | callable | `null` | Fires once before import starts |
-| `after_import` | callable | `null` | Fires once after import completes |
+| Key                 | Type     | Default                 | Description                                               |
+|---------------------|----------|-------------------------|-----------------------------------------------------------|
+| `title`             | string   | Auto-generated from key | Display title for the import card                         |
+| `description`       | string   | `''`                    | Description shown below the title                         |
+| `tab`               | string   | First tab               | Which tab this operation belongs to                       |
+| `icon`              | string   | `'dashicons-upload'`    | Dashicon class for the card icon                          |
+| `batch_size`        | int      | `100`                   | Rows processed per AJAX request                           |
+| `max_file_size`     | int      | `0`                     | Max upload size in bytes (0 = unlimited)                  |
+| `skip_empty_rows`   | bool     | `true`                  | Skip rows where all values are empty                      |
+| `fields`            | array    | `[]`                    | Field definitions (see [Field Types](fields/overview.md)) |
+| `validate_callback` | callable | `null`                  | Operation-level row validation                            |
+| `process_callback`  | callable | *required*              | Row processing function                                   |
+| `before_import`     | callable | `null`                  | Fires once before import starts                           |
+| `after_import`      | callable | `null`                  | Fires once after import completes                         |
 
 ## Multiple Operations
 

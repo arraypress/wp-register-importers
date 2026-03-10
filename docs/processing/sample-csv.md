@@ -1,6 +1,7 @@
 # Sample CSV
 
-The library auto-generates a downloadable sample CSV for each operation based on field definitions. Users can download it from the "Sample CSV" link in each operation card header.
+The library auto-generates a downloadable sample CSV for each operation based on field definitions. Users can download
+it from the "Sample CSV" link in each operation card header.
 
 ## How It Works
 
@@ -13,21 +14,21 @@ The sample CSV contains one header row and one example row. Example values are g
 
 ## Type-Based Examples
 
-| Type | Example Value |
-|---|---|
-| `string` | `Example` (or key-based guess) |
-| `number` | `minimum` value or `9.99` |
-| `integer` | `minimum` value or `1` |
-| `boolean` | `true` |
-| `email` | `user@example.com` |
-| `url` | `https://example.com/image.jpg` |
-| `currency` | `USD` |
-| `country` | `US` |
-| `date` | `2025-01-15` |
-| `datetime` | `2025-01-15 14:30:00` |
-| `post` | `My Post Title` (if match_by is title) or `1` |
-| `term` | `Category Name` (if match_by is name) or `1` |
-| `user` | `user@example.com` (if match_by is email) or `1` |
+| Type         | Example Value                                               |
+|--------------|-------------------------------------------------------------|
+| `string`     | `Example` (or key-based guess)                              |
+| `number`     | `minimum` value or `9.99`                                   |
+| `integer`    | `minimum` value or `1`                                      |
+| `boolean`    | `true`                                                      |
+| `email`      | `user@example.com`                                          |
+| `url`        | `https://example.com/image.jpg`                             |
+| `currency`   | `USD`                                                       |
+| `country`    | `US`                                                        |
+| `date`       | `2025-01-15`                                                |
+| `datetime`   | `2025-01-15 14:30:00`                                       |
+| `post`       | `My Post Title` (if match_by is title) or `1`               |
+| `term`       | `Category Name` (if match_by is name) or `1`                |
+| `user`       | `user@example.com` (if match_by is email) or `1`            |
 | `attachment` | `https://example.com/image.jpg` (if match_by is url) or `1` |
 
 ## Key-Based Guesses

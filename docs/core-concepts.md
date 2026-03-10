@@ -33,13 +33,13 @@ CSV Upload
 
 Your `process_callback` should return one of:
 
-| Return Value | Effect |
-|---|---|
-| `'created'` | Increments created counter |
-| `'updated'` | Increments updated counter |
-| `'skipped'` | Increments skipped counter |
-| `WP_Error` | Increments failed counter, error logged with row number |
-| Any other value | Treated as `'created'` |
+| Return Value    | Effect                                                  |
+|-----------------|---------------------------------------------------------|
+| `'created'`     | Increments created counter                              |
+| `'updated'`     | Increments updated counter                              |
+| `'skipped'`     | Increments skipped counter                              |
+| `WP_Error`      | Increments failed counter, error logged with row number |
+| Any other value | Treated as `'created'`                                  |
 
 ## Registry
 

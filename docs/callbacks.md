@@ -2,7 +2,8 @@
 
 ## process_callback (required)
 
-The main callback that handles each validated row. Receives a fully processed array where all values have been trimmed, type-cast, transformed, validated, and entity-resolved.
+The main callback that handles each validated row. Receives a fully processed array where all values have been trimmed,
+type-cast, transformed, validated, and entity-resolved.
 
 ```php
 'process_callback' => function( array $row ) {
@@ -45,7 +46,8 @@ The main callback that handles each validated row. Receives a fully processed ar
 
 ## validate_callback (operation-level)
 
-Optional cross-field validation that runs after individual field validation but before `process_callback`. Receives the validated row. Return `true` to pass or `WP_Error` to reject the row.
+Optional cross-field validation that runs after individual field validation but before `process_callback`. Receives the
+validated row. Return `true` to pass or `WP_Error` to reject the row.
 
 ```php
 'validate_callback' => function( array $row ) {
@@ -63,7 +65,8 @@ Optional cross-field validation that runs after individual field validation but 
 
 ## validate_callback (per-field)
 
-Custom validation for a single field. Runs after built-in validation. Return `true` to pass or `WP_Error` to reject. Does not modify the value.
+Custom validation for a single field. Runs after built-in validation. Return `true` to pass or `WP_Error` to reject.
+Does not modify the value.
 
 ```php
 'discount_code' => [
@@ -80,7 +83,8 @@ Custom validation for a single field. Runs after built-in validation. Return `tr
 
 ## process_callback (per-field)
 
-Custom transformation for a single field. Runs after validation. The return value replaces the field value. Return `WP_Error` to reject the row.
+Custom transformation for a single field. Runs after validation. The return value replaces the field value. Return
+`WP_Error` to reject the row.
 
 ```php
 'price_raw' => [
@@ -98,7 +102,8 @@ Custom transformation for a single field. Runs after validation. The return valu
 
 ## before_import
 
-Fires once before the first batch starts. Use for setup, connection checks, or cache warming. Return `WP_Error` to abort the import.
+Fires once before the first batch starts. Use for setup, connection checks, or cache warming. Return `WP_Error` to abort
+the import.
 
 ```php
 'before_import' => function() {

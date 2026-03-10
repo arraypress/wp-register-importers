@@ -1,6 +1,8 @@
 # WordPress Register Importers
 
-A WordPress library for creating CSV import interfaces with a declarative, WordPress-style API. Define your fields, validation rules, and a single process callback — the library handles the UI, file upload, field mapping, batch processing, progress tracking, and error reporting.
+A WordPress library for creating CSV import interfaces with a declarative, WordPress-style API. Define your fields,
+validation rules, and a single process callback — the library handles the UI, file upload, field mapping, batch
+processing, progress tracking, and error reporting.
 
 ## Features
 

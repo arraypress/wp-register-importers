@@ -4,16 +4,16 @@ Built-in validation rules that can be applied to any field.
 
 ## Reference
 
-| Key | Type | Description |
-|---|---|---|
-| `required` | bool | Value must not be empty |
-| `minimum` | float/int | Minimum numeric value (for `number`/`integer` types) |
-| `maximum` | float/int | Maximum numeric value |
-| `min_length` | int | Minimum string length |
-| `max_length` | int | Maximum string length |
-| `pattern` | string | Regex pattern the value must match |
-| `options` | array | Allowed values whitelist |
-| `unique` | bool | Value must be unique within the CSV |
+| Key          | Type      | Description                                          |
+|--------------|-----------|------------------------------------------------------|
+| `required`   | bool      | Value must not be empty                              |
+| `minimum`    | float/int | Minimum numeric value (for `number`/`integer` types) |
+| `maximum`    | float/int | Maximum numeric value                                |
+| `min_length` | int       | Minimum string length                                |
+| `max_length` | int       | Maximum string length                                |
+| `pattern`    | string    | Regex pattern the value must match                   |
+| `options`    | array     | Allowed values whitelist                             |
+| `unique`     | bool      | Value must be unique within the CSV                  |
 
 ## Required
 
@@ -76,7 +76,8 @@ Restricts values to a whitelist. When the field has a separator (array values), 
 
 ## Unique
 
-Checks for duplicate values across the entire CSV before any rows are processed. Useful for fields like email addresses, SKUs, or codes that must be unique.
+Checks for duplicate values across the entire CSV before any rows are processed. Useful for fields like email addresses,
+SKUs, or codes that must be unique.
 
 ```php
 'email' => [

@@ -52,7 +52,8 @@ Values are trimmed and empty items are removed:
 "red | blue | | green " → ['red', 'blue', 'green']
 ```
 
-If the separator string is multiple characters, the library tries each character and uses the first one found in the value:
+If the separator string is multiple characters, the library tries each character and uses the first one found in the
+value:
 
 ```php
 'separator' => '|,',    // Tries '|' first, then ','

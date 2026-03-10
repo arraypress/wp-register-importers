@@ -2,7 +2,8 @@
 
 ## Capability Checks
 
-Every REST endpoint checks permissions via `check_permission()`. The capability defaults to `manage_options` but can be configured per page:
+Every REST endpoint checks permissions via `check_permission()`. The capability defaults to `manage_options` but can be
+configured per page:
 
 ```php
 register_importers( 'my-plugin', [
@@ -29,7 +30,8 @@ All REST parameters are sanitized:
 
 ## Nonce Verification
 
-All REST requests require a valid `X-WP-Nonce` header, provided automatically by the JavaScript client via `wp_create_nonce( 'wp_rest' )`.
+All REST requests require a valid `X-WP-Nonce` header, provided automatically by the JavaScript client via
+`wp_create_nonce( 'wp_rest' )`.
 
 ## Database Safety
 

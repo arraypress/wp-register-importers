@@ -1,6 +1,7 @@
 # Field Types Overview
 
-Fields define the expected columns in the CSV, their types, validation rules, and transformations. Each field value passes through the [processing pipeline](processing/pipeline.md) before reaching your `process_callback`.
+Fields define the expected columns in the CSV, their types, validation rules, and transformations. Each field value
+passes through the [processing pipeline](processing/pipeline.md) before reaching your `process_callback`.
 
 ## Field Definition
 
