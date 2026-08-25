@@ -20,8 +20,8 @@
     "wp-coding-standards/wpcs": "^3.4"
   },
   "suggest": {
-    "arraypress/wp-currencies": "Checks that a currency column holds a real ISO 4217 code.",
-    "arraypress/wp-countries": "Checks that a country column holds a real ISO 3166-1 code."
+    "arraypress/wp-countries": "Checks that a country column holds a real ISO 3166-1 code.",
+    "arraypress/wp-money": "Checks that a currency column holds a real ISO 4217 code."
   },
   "autoload": {
     "psr-4": {
