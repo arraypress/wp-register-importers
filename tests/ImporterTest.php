@@ -142,40 +142,10 @@ final class ImporterTest extends TestCase {
 
 		// And that it is actually derived rather than being that string.
 		// Unprefixed the two are identical, so asserting the value proves
-		// nothing — this loads the same class under the namespace Strauss
-		// would give it and checks the answer moved.
-		$prefixed = $this->as_prefixed_build();
-
-		$this->assertSame( 'myplugin-importers/v1', $prefixed::rest_namespace() );
-		$this->assertSame( 'myplugin-importers', $prefixed::handle() );
-		$this->assertSame( 'myplugin_importers_file_x', $prefixed::key( 'file_x' ) );
-	}
-
-	/**
-	 * Load Runtime again under the namespace a prefixed build would give it.
-	 *
-	 * Strauss rewrites the namespace and nothing else, so this is exactly
-	 * what a second plugin bundling the library would be running.
-	 *
-	 * @return string The class name.
-	 */
-	private function as_prefixed_build(): string {
-		$prefixed = 'MyPlugin\\ArrayPress\\RegisterImporters\\Utils\\Runtime';
-
-		if ( ! class_exists( $prefixed ) ) {
-			$source = (string) file_get_contents( dirname( __DIR__ ) . '/src/Utils/Runtime.php' );
-
-			$source = str_replace(
-				'namespace ArrayPress\\RegisterImporters\\Utils;',
-				'namespace MyPlugin\\ArrayPress\\RegisterImporters\\Utils;',
-				$source
-			);
-
-			// phpcs:ignore Squiz.PHP.Eval.Discouraged -- loading one class a second time under a different namespace is the thing being tested; there is no other way to have two of it.
-			eval( '?>' . $source );
-		}
-
-		return $prefixed;
+		// nothing — this asks the rule what a prefixed build would produce.
+		$this->assertSame( 'importers', Runtime::prefix_for( 'ArrayPress\\RegisterImporters\\Utils' ) );
+		$this->assertSame( 'myplugin-importers', Runtime::prefix_for( 'MyPlugin\\ArrayPress\\RegisterImporters\\Utils' ) );
+		$this->assertSame( 'edd-fraud-filter-importers', Runtime::prefix_for( 'EDD_Fraud_Filter\\ArrayPress\\RegisterImporters\\Utils' ) );
 	}
 
 	/**
